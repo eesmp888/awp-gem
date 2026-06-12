@@ -243,9 +243,140 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
 .site-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
 .sf-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text2);transition:all .15s;}
 .sf-btn:hover,.sf-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+
+/* ── MOBILE NAV ── */
+.mobile-topbar{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:300;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:10px 14px;align-items:center;justify-content:space-between;
+}
+.mobile-logo{display:flex;align-items:center;gap:8px;}
+.mobile-logo-icon{width:28px;height:28px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;}
+.mobile-logo-icon svg{width:15px;height:15px;fill:white;}
+.mobile-logo-text{font-size:13px;font-weight:600;}
+.mobile-nav-icons{display:flex;align-items:center;gap:4px;}
+.mnav-btn{
+  width:36px;height:36px;border-radius:var(--r-sm);
+  background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;position:relative;
+}
+.mnav-btn:hover,.mnav-btn.active{background:var(--accent);border-color:var(--accent);}
+.mnav-btn svg{width:16px;height:16px;fill:currentColor;}
+.mnav-btn .mnav-label{
+  position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
+  font-size:9px;color:var(--text3);white-space:nowrap;display:none;
+}
+.mnav-btn:hover .mnav-label{display:block;}
+.mnav-badge{
+  position:absolute;top:-3px;right:-3px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--red);color:white;font-size:8px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.mobile-page-title{font-size:12px;color:var(--text3);margin-top:1px;}
+
+/* Mobile overlay drawer */
+.mobile-drawer{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:400;
+}
+.mobile-drawer.open{display:flex;}
+.drawer-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
+.drawer-panel{
+  position:absolute;left:0;top:0;bottom:0;width:220px;
+  background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+  animation:slideIn .2s ease;
+}
+@keyframes slideIn{from{transform:translateX(-100%);}to{transform:translateX(0);}}
+.drawer-header{
+  padding:14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.drawer-close{
+  width:28px;height:28px;border-radius:var(--r-sm);
+  background:var(--bg3);border:none;color:var(--text2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+
+@media(max-width:768px){
+  .sidebar{display:none !important;}
+  .main{margin-left:0 !important;padding-top:56px;}
+  .mobile-topbar{display:flex !important;}
+  .topbar{display:none !important;}
+}
 </style>
 </head>
 <body>
+
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar" id="mobileTopbar">
+  <div class="mobile-logo">
+    <div class="mobile-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L20 8.5v7l-8 4-8-4v-7l8-4.32z"/></svg>
+    </div>
+    <div>
+      <div class="mobile-logo-text">AWP Equipment</div>
+      <div class="mobile-page-title" id="mobilePageTitle">Equipment Dashboard</div>
+    </div>
+  </div>
+  <div class="mobile-nav-icons">
+    <div class="mnav-btn active" id="mnav-dashboard" onclick="mobileNav('dashboard',this)" title="Dashboard">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      <span class="mnav-label">Dashboard</span>
+    </div>
+    <div class="mnav-btn" id="mnav-water" onclick="mobileNav('water',this)" title="Water">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.18 5 4.05 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      <span class="mnav-label">Water</span>
+    </div>
+    <div class="mnav-btn" id="mnav-history" onclick="mobileNav('history',this)" title="History">
+      <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      <span class="mnav-badge">3</span>
+      <span class="mnav-label">History</span>
+    </div>
+    <div class="mnav-btn" id="mnav-menu" onclick="openDrawer()" title="เมนูทั้งหมด">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <span class="mnav-label">เมนู</span>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <div style="font-size:13px;font-weight:600;">เมนูทั้งหมด</div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div style="padding:10px 8px;">
+      <div class="sb-group">ภาพรวม</div>
+      <button class="sb-item" onclick="mobileNavDrawer('dashboard')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Dashboard
+      </button>
+      <button class="sb-item" onclick="mobileNavDrawer('water')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.18 5 4.05 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        Water Dashboard
+      </button>
+      <button class="sb-item" onclick="mobileNavDrawer('history')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/></svg>
+        Status History
+        <span class="sb-badge">3</span>
+      </button>
+      <div class="sb-group" style="margin-top:8px">อัปโหลดข้อมูล</div>
+      <button class="sb-item" onclick="mobileNavDrawer('wrtp-up')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+        WRTP Upload
+      </button>
+      <button class="sb-item" onclick="mobileNavDrawer('wwtp-up')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+        WWTP Upload
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <!-- ═══ SIDEBAR ═══ -->
 <nav class="sidebar">
@@ -1010,6 +1141,46 @@ function initRuntimeChart(){
 // INIT
 initDashboard();
 renderHistory('all');
+</script>
+
+
+<script>
+var PAGE_TITLES_MOBILE = {'dashboard':'Equipment Dashboard','water':'Water Dashboard','history':'Status History','wrtp-up':'WRTP Upload','wwtp-up':'WWTP Upload'};
+var MNAV_IDS = {'dashboard':'mnav-dashboard','water':'mnav-water','history':'mnav-history'};
+
+function mobileNav(id, btn){
+  // Update icon buttons
+  document.querySelectorAll('.mnav-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  // Update page title
+  document.getElementById('mobilePageTitle').textContent = PAGE_TITLES_MOBILE[id]||'';
+  // Navigate
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.sb-item').forEach(function(b){ b.classList.remove('active'); });
+  var pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  if(id==='water'){ buildDatePicker(); }
+  if(id==='history'){ renderHistory('all'); initRuntimeChart(); }
+  if(id==='dashboard'){ initDashboard(); }
+  window.scrollTo(0,0);
+}
+
+function mobileNavDrawer(id){
+  closeDrawer();
+  var btn = document.getElementById('mnav-'+id);
+  mobileNav(id, btn||null);
+  // Sync desktop sidebar too
+  document.querySelectorAll('.sb-item').forEach(function(b){ b.classList.remove('active'); });
+}
+
+function openDrawer(){
+  document.getElementById('mobileDrawer').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeDrawer(){
+  document.getElementById('mobileDrawer').classList.remove('open');
+  document.body.style.overflow='';
+}
 </script>
 
 </body>
