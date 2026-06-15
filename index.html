@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>AWP Equipment Monitor</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <style>
 :root{
   --bg:#0f1117;--bg2:#161b27;--bg3:#1c2333;--card:#1e2536;
@@ -84,7 +85,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* ── DATE BAR (water) ── */
 .date-bar{
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
   padding:9px 22px;background:var(--bg2);border-bottom:1px solid var(--border);
 }
 .date-label{font-size:11px;color:var(--text3);font-weight:600;
@@ -230,12 +231,14 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
   .stat-grid-4{grid-template-columns:repeat(2,1fr);}
   .equip-grid{grid-template-columns:repeat(2,1fr);}
   .grid-2,.grid-32{grid-template-columns:1fr;}
+  #dash-kpi{grid-template-columns:repeat(3,1fr) !important;}
 }
 @media(max-width:768px){
   :root{--sidebar:0px;}
   .sidebar{display:none;}
   .main{margin-left:0;}
   .stat-grid,.stat-grid-4{grid-template-columns:repeat(2,1fr);}
+  #dash-kpi{grid-template-columns:repeat(2,1fr) !important;}
 }
 
 .site-btn{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--card);color:var(--text2);transition:all .15s;}
@@ -414,7 +417,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
       <span class="mnav-label">Dashboard</span>
     </div>
     <div class="mnav-btn" id="mnav-water" onclick="mobileNav('water',this)" title="Water">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.18 5 4.05 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 2C12 2 5 10 5 14.5 5 18.09 8.13 21 12 21s7-2.91 7-6.5C19 10 12 2 12 2zm0 17c-2.76 0-5-2.01-5-4.5 0-.83.51-1.93 1.5-3.32C9.2 12.06 10.6 13.5 12 13.5s2.8-1.44 3.5-2.32c.99 1.39 1.5 2.49 1.5 3.32 0 2.49-2.24 4.5-5 4.5z"/></svg>
       <span class="mnav-label">Water</span>
     </div>
     <div class="mnav-btn" id="mnav-history" onclick="mobileNav('history',this)" title="History">
@@ -475,6 +478,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
       <option value="ปกติ">ปกติ</option>
       <option value="ชำรุด">ชำรุด</option>
       <option value="ส่งซ่อม">ส่งซ่อม</option>
+      <option value="ยกเลิกการใช้งาน">ยกเลิกการใช้งาน</option>
     </select>
     <label>รหัสยืนยันการเปลี่ยนสถานะ</label>
     <input type="password" id="modalPasscode" placeholder="กรอกรหัสยืนยัน" onkeydown="if(event.key==='Enter')submitStatusChange()"/>
@@ -604,6 +608,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
         <button class="sf-btn" onclick="filterStatus('ปกติ',this)">ปกติ</button>
         <button class="sf-btn" onclick="filterStatus('ชำรุด',this)">ชำรุด</button>
         <button class="sf-btn" onclick="filterStatus('ส่งซ่อม',this)">ส่งซ่อม</button>
+        <button class="sf-btn" onclick="filterStatus('ยกเลิกการใช้งาน',this)">ยกเลิกการใช้งาน</button>
         <span style="font-size:11px;color:var(--text3);margin-left:4px">Priority:</span>
         <button class="sf-btn active" id="pri-all-btn" onclick="filterPri('all',this)">ทั้งหมด</button>
         <button class="sf-btn" onclick="filterPri('Class A',this)">A</button>
@@ -613,7 +618,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
     </div>
 
     <!-- KPI Summary -->
-    <div id="dash-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px;"></div>
+    <div id="dash-kpi" style="display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:14px;"></div>
 
     <!-- Charts row -->
     <div class="grid-2" style="margin-bottom:14px;">
@@ -659,7 +664,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
     </span>
     <button class="date-nav" onclick="stepDate(-1)">&#8249;</button>
     <div class="date-select-wrap">
-      <select class="date-select" id="dateSelect" onchange="onDateChange(this.value)"></select>
+      <select class="date-select" id="monthSelect" onchange="onMonthChange(this.value)" style="min-width:108px;padding-right:28px;"></select>
+      <span class="select-chev">&#9660;</span>
+    </div>
+    <div class="date-select-wrap">
+      <select class="date-select" id="dateSelect" onchange="onDateChange(this.value)" style="min-width:130px;"></select>
       <span class="select-chev">&#9660;</span>
     </div>
     <button class="date-nav" onclick="stepDate(1)">&#8250;</button>
@@ -781,7 +790,7 @@ var LAST_DATE="2026-06-03";
 var TREND={"wlabels":["5/5","6/5","7/5","8/5","9/5","10/5","11/5","12/5","13/5","14/5","15/5","16/5","17/5","18/5","19/5","20/5","21/5","22/5","23/5","24/5","25/5","26/5","27/5","28/5","29/5","30/5","31/5","1/6","2/6","3/6"],"rlabels":["1/5","2/5","3/5","4/5","5/5","6/5","7/5","8/5","9/5","10/5","11/5","12/5","13/5","14/5","15/5","16/5","17/5","18/5","19/5","20/5","21/5","22/5","23/5","24/5","25/5","26/5","27/5","28/5","29/5","30/5"],"w_inf":[10962.0,11152.0,10710.0,11993.0,8238.0,4190.0,10392.0,11034.0,9005.0,8422.0,9670.0,7833.0,4188.0,9491.0,10568.0,10267.0,11796.0,10157.0,8123.0,4450.0,9133.0,8085.0,8749.0,8606.0,8347.0,7552.0,3639.0,5659.0,6946.0,5787.0],"w_reuse":[2595.0,2529.0,2543.0,3190.0,3448.0,2484.0,3531.0,3907.0,3847.0,3686.0,3510.0,3833.0,2515.0,3865.0,3874.0,3892.0,3891.0,3844.0,3900.0,3875.0,2734.0,2752.0,2739.0,2711.0,2733.0,2831.0,910.0,1754.0,2711.0,2716.0],"w_cap":[130.3,127.1,113.9,128.0,93.4,56.3,115.6,119.1,115.2,88.8,110.0,83.6,50.2,104.1,119.3,121.0,117.0,125.4,95.6,57.4,106.4,98.2,101.9,108.8,98.0,87.5,45.3,66.7,84.5,62.3],"w_eff_cod":[52.0,65.0,56.0,62.0,64.0,72.0,65.0,67.0,69.0,66.0,62.0,71.0,62.0,64.0,68.0,69.0,66.0,67.0,69.0,78.0,77.0,80.0,78.0,75.0,79.0,58.0,54.0,55.0,65.0,null],"w_eff_ss":[18.0,25.0,10.0,24.0,24.0,16.0,27.0,26.0,26.0,24.0,20.0,29.0,25.0,24.0,26.0,19.0,24.0,29.0,25.0,22.0,22.0,38.0,38.0,26.0,28.0,20.0,29.0,24.0,25.0,null],"w_in1_cod":[103.0,198.0,151.0,148.0,139.0,194.0,144.0,147.0,127.0,134.0,166.0,162.0,122.0,136.0,152.0,184.0,169.0,183.0,166.0,260.0,265.0,175.0,242.0,198.0,225.0,138.0,121.0,120.0,195.0,null],"w_pwr":[0.139,0.14,0.149,0.141,0.134,0.147,0.149,0.132,0.143,0.164,0.142,0.156,0.159,0.141,0.143,0.135,0.139,0.136,0.144,0.194,0.138,0.152,0.153,0.154,0.159,0.158,0.189,0.171,0.157,0.156],"w_sludge":[500.0,400.0,1200.0,400.0,null,null,700.0,null,null,1100.0,200.0,null,null,null,500.0,700.0,null,800.0,null,null,null,null,300.0,900.0,900.0,null,null,null,1000.0,2000.0],"r_uf_feed":[2014.0,2629.0,2045.0,2517.0,2524.0,2458.0,2307.0,2228.0,2002.0,2175.0,2716.0,2353.0,2288.0,1903.0,2325.0,2209.0,1832.0,2398.0,2263.0,2126.0,2006.0,2027.0,1618.0,1828.0,2287.0,2027.0,2024.0,1947.0,1841.0,1646.0],"r_reclaim":[1105.0,1703.0,1217.0,1473.0,1458.0,1436.0,1301.0,1253.0,1226.0,1292.0,1627.0,1392.0,1314.0,1126.0,1350.0,1257.0,1099.0,1441.0,1283.0,1174.0,1141.0,1089.0,867.0,1047.0,1275.0,1097.0,1030.0,1008.0,917.0,880.0],"r_rec_tds":[422.0,410.0,450.0,442.0,392.0,270.0,415.0,300.0,380.0,364.0,431.0,289.0,415.0,439.0,374.0,384.0,446.0,435.0,422.0,435.0,409.0,420.0,479.0,412.0,426.0,420.0,369.0,447.0,485.0,486.0],"r_rec_turb":[0.54,0.95,0.48,0.51,0.52,0.5,0.48,0.47,0.59,0.6,0.67,0.51,0.6,0.66,0.61,0.63,0.69,0.62,0.56,0.63,0.76,0.68,0.57,0.65,0.62,0.68,0.61,0.65,0.66,0.59],"r_raw_turb":[19.8,29.5,27.1,24.5,14.9,43.5,21.8,24.3,28.6,22.6,24.6,20.2,21.6,24.7,28.4,33.6,27.5,42.0,34.6,43.8,31.0,48.2,24.6,28.2,46.3,27.0,40.2,30.6,40.5,26.7],"r_kwh":[1.448,1.233,1.315,1.29,1.372,1.393,1.384,1.357,1.387,1.393,1.352,1.437,1.446,1.332,1.333,1.432,1.456,1.388,1.481,1.618,1.402,1.469,1.499,1.337,1.49,1.459,1.65,1.488,1.527,1.477],"r_uf_rec":[74.4,76.7,75.4,74.6,74.0,74.1,74.1,71.9,74.5,77.7,77.2,75.9,74.5,75.0,75.1,74.3,74.6,76.1,74.2,73.5,72.2,72.4,71.3,73.4,74.7,72.3,71.2,70.9,70.8,71.6],"r_overall":[54.9,64.8,59.5,58.5,57.8,58.4,56.4,56.2,61.2,59.4,59.9,59.2,57.4,59.2,58.1,56.9,60.0,60.1,56.7,55.2,56.9,53.7,53.6,57.3,55.7,54.1,50.9,51.8,49.8,53.5],"w_avg":{"inf":8504.8,"cap":97.7,"reuse":3111.7,"eff_cod":66.7,"eff_ss":24.6,"pwr":0.2,"sludge":773.3},"r_avg":{"uf_feed":2152.1,"reclaim":1229.3,"rec_tds":408.9,"rec_turb":0.6,"kwh":1.4,"uf_rec":74.0,"overall":56.9}};
 </script>
 <script>
-const AWP_EQUIP = [{"no":1,"code":"AWP-WW-STM-EQ-1","name":"MAGNETIC FLOW METER EQ","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":2,"code":"AWP-WW-SC-EQ-1","name":"SCREW SCREEN NO.1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":3,"code":"AWP-WW-P-SBW-1","name":"SCREW SCREEN BACKWASH PUMP NO.1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":4,"code":"AWP-WW-SM-EQ-1","name":"SUBMERSIBLE MIXER NO.1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":5,"code":"AWP-WW-SM-EQ-2","name":"SUBMERSIBLE MIXER NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":6,"code":"AWP-WW-P-EQ-1","name":"SBR FEED PUMP NO.1","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":7,"code":"AWP-WW-P-EQ-2","name":"SBR FEED PUMP NO.2","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":8,"code":"AWP-WW-P-SL-1","name":"SLUDGE DRAW OFF PUMP NO.1","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":9,"code":"AWP-WW-P-SL-2","name":"SLUDGE DRAW OFF PUMP NO.2","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":10,"code":"AWP-WW-P-SL-3","name":"SLUDGE DRAW OFF PUMP NO.3","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":11,"code":"AWP-WW-AB-AE-1","name":"AIR BLOWER NO.1","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":12,"code":"AWP-WW-AB-AE-3","name":"AIR BLOWER NO.3","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":13,"code":"AWP-WW-AB-AE-4","name":"AIR BLOWER NO.4","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":14,"code":"AWP-WW-AC-PVS-1","name":"AIR COMPRESSOR FOR AIR BLOWER NO.1","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":15,"code":"AWP-WW-AB-AE-2","name":"AIR BLOWER NO.2","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":16,"code":"AWP-WW-AC-PVS-2","name":"AIR COMPRESSOR FOR AIR BLOWER NO.2","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":17,"code":"AWP-WW-SCR-TK-1","name":"MOTOR SLUDGE SCRAPER NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":18,"code":"AWP-WW-P-ST-1","name":"SLUDGE FEED PUMP NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":19,"code":"AWP-WW-P-ST-2","name":"SLUDGE FEED PUMP NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":20,"code":"AWP-WW-BFP-SL-1","name":"BELT FILTERPRESS SYSTEM NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":21,"code":"AWP-WW-P-BW-1","name":"BANDWASH WATER PUMP OF BELTPRESS NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":22,"code":"AWP-WW-P-BW-2","name":"BANDWASH WATER PUMP OF BELTPRESS NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":23,"code":"AWP-WW-P-SW-1","name":"SERVICE WATER PUMP NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":24,"code":"AWP-WW-P-SW-2","name":"SERVICE WATER PUMP NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":25,"code":"AWP-WW-MX-PL-1","name":"POLYMER MIXER NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":26,"code":"AWP-WW-AC-MIT-2","name":"AIR COMPRESSOR FOR BELT PRESS NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":27,"code":"AWP-WW-AC-MIT-1","name":"AIR COMPRESSOR FOR BELT PRESS NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":28,"code":"AWP-WW-SH-1","name":"SLUDGE HOPPER NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":29,"code":"AWP-WW-P-SA-1","name":"SULFURIC ACID FEED PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":30,"code":"AWP-WW-P-NA-1","name":"SODIUM HYDROXIDE FEED PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":31,"code":"AWP-WW-P-PL-1","name":"POLYMER FEED PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":32,"code":"AWP-WW-P-PL-2","name":"POLYMER FEED PUMP NO.2","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":33,"code":"AWP-WW-P-PL-3","name":"POLYMER FEED PUMP NO.3","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":34,"code":"AWP-WW-P-DS-1","name":"SUMP PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":35,"code":"AWP-WW-INS-PH-1","name":"PH ANALYZER NO.1","location":"SBR TANK","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":36,"code":"AWP-WW-INS-DO-SBR-1","name":"DO ANALYZER NO.1","location":"SBR TANK","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":37,"code":"AWP-WW-INS-DO-SBR-2","name":"DO ANALYZER NO.2","location":"SBR TANK","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":38,"code":"AWP-WW-INS-DO-SBR-3","name":"DO ANALYZER NO.3","location":"SBR TANK","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":39,"code":"AWP-WW-MCC1","name":"MCC-SBR1","location":"CONTROL ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":40,"code":"AWP-WW-PLC1","name":"PLC-SBR1","location":"CONTROL ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":41,"code":"AWP-WW-DIF-1","name":"Fine Bubble Diffuser","location":"SBR TANK","priority":"-","status":"ชำรุด","site":"AWP"},{"no":42,"code":"AWPWW-PULLEY-2T-NO1","name":"รอกโซ่ SBR No.1","location":"AW1","priority":"Class C","status":"ปกติ","site":"AWP"},{"no":43,"code":"AWPWW-PULLEY-2T-NO2","name":"รอกโซ่ SBR No.2","location":"AW1","priority":"Class C","status":"ปกติ","site":"AWP"},{"no":44,"code":"AWPWW-PULLEY-2T-NO3","name":"รอกมือหมุน EQ NO1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":45,"code":"AWP-WW-FE-EQ-2","name":"MAGNETIC FLOW METER FOR SBR NO.1-3","location":"AW1","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":46,"code":"AMT-WW-TRAN-1","name":"TRANSFORMER NO.1","location":"AW1","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":47,"code":"AMT-WW-TRAN-2","name":"TRANSFORMER NO.2","location":"AW2","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":48,"code":"AW2-WW-FE-EQ-1","name":"MAGNETIC FLOW METER FOR SBR NO.4-6","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":49,"code":"AW2-WW-MCC-PLC-2","name":"MCC-PLC-SBR2","location":"CONTROL ROOM2","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":50,"code":"AW2-WW-SC-EQ-2","name":"SCREW SCREEN NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":51,"code":"AW2-WW-P-SC-EQ-2","name":"SCREW SCREEN PUMP NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":52,"code":"AW2-WW-P-EQ-3","name":"SBR FEED PUMP NO.3","location":"EQ POND","priority":"Class A","status":"ชำรุด","site":"AWP"},{"no":53,"code":"AW2-WW-P-EQ-4","name":"SBR FEED PUMP NO.4","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":54,"code":"AW2-WW-P-SL-4","name":"SLUDGE DRAW OFF PUMP NO.4","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":55,"code":"AW2-WW-P-SL-5","name":"SLUDGE DRAW OFF PUMP NO.5","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":56,"code":"AW2-WW-P-SL-6","name":"SLUDGE DRAW OFF PUMP NO.6","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":57,"code":"AW2-WW-AB-AE-5","name":"AIR BLOWER NO.5","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":58,"code":"AW2-WW-AB-AE-6","name":"AIR BLOWER NO.6","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":59,"code":"AW2-WW-AB-AE-7","name":"AIR BLOWER NO.7","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":60,"code":"AW2-WW-AB-AE-8","name":"AIR BLOWER NO.8","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":61,"code":"AW2-WW-AC-PVS-3","name":"AIR COMPRESSOR FOR AIR BLOWER NO.3","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":62,"code":"AW2-WW-AC-PVS-4","name":"AIR COMPRESSOR FOR AIR BLOWER NO.4","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":63,"code":"AW2-WW-SCR-TK-2","name":"MOTOR SLUDGE SCRAPER NO.2","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":64,"code":"AW2-WW-P-ST-3","name":"SLUDGE FEED PUMP NO.3","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":65,"code":"AW2-WW-P-ST-4","name":"SLUDGE FEED PUMP NO.4","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":66,"code":"AW2-WW-BFP-SL-2","name":"BELT FILTERPRESS SYSTEM NO.2","location":"DEWATERING ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":67,"code":"AW2-WW-P-BW-3","name":"BANDWASH WATER PUMP OF BELTPRESS NO.3","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":68,"code":"AW2-WW-P-BW-4","name":"BANDWASH WATER PUMP OF BELTPRESS NO.4","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":69,"code":"AW2-WW-P-SW-3","name":"SERVICE WATER PUMP NO.3","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":70,"code":"AW2-WW-P-SW-4","name":"SERVICE WATER PUMP NO.4","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":71,"code":"AW2-WW-MX-PL-2","name":"POLYMER MIXER NO.2","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":72,"code":"AW2-WW-AC-MIT-3","name":"AIR COMPRESSOR FOR BELTPRESS NO.3","location":"DEWATERING ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":73,"code":"AW2-WW-AC-MIT-4","name":"AIR COMPRESSOR FOR BELTPRESS NO.4","location":"DEWATERING ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":74,"code":"AW2-WW-P-SA-2","name":"SULFURIC ACID FEED PUMP NO.2","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":75,"code":"AW2-WW-P-NA-2","name":"SODIUM HYDROXIDE FEED PUMP NO.2","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":76,"code":"AW2-WW-P-PL-4","name":"POLYMER FEED PUMP NO.4","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":77,"code":"AW2-WW-P-PL-5","name":"POLYMER FEED PUMP NO.5","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":78,"code":"AW2-WW-P-PL-6","name":"POLYMER FEED PUMP NO.6","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":79,"code":"AW2-WW-P-DS-2","name":"SUMP PUMP NO.2","location":"MEETING ROOM","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":80,"code":"AW2-WW-AE-SBR4","name":"DO ANALYZER NO.4 FOR SBR TANK4-5","location":"SBR TANK","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":81,"code":"AW2-WW-AE-SBR5","name":"DO ANALYZER NO.6 FOR SBR TANK 6","location":"SBR TANK","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":82,"code":"AW2-WW-AE-NT-1","name":"PH+CONDUCT ANALYZER FOR SBR4-6","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":83,"code":"AW2-WW-AE-COD-1","name":"BOD/COD ONLINE ANALYZER","location":"AW2","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":84,"code":"AMT-WW-P-RE-1","name":"REUSE PUMP NO.1","location":"POLISHING POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":85,"code":"AMT-WW-P-RE-2","name":"REUSE PUMP NO.2","location":"POLISHING POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":86,"code":"AMT-WW-P-RE-3","name":"REUSE PUMP NO.3","location":"POLISHING POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":87,"code":"AWP-WW-SM-SP-01","name":"SUBMERSIBLE PUMP NO.01","location":"MN ROOM","priority":"Class C","status":"ปกติ","site":"AWP"},{"no":88,"code":"AWP-WW-SH-2","name":"SLUDGE HOPPER NO.2","location":"THICKENER ROOM 2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":89,"code":"AWP-WW-P-SBW-2","name":"SCREW SCREEN BACKWASH PUMP NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":90,"code":"AWP-WW-PA","name":"Pneumatic Actuator","location":"AW1-AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":91,"code":"AWP-WW-FE-EQ-03","name":"MAGNETIC FLOWMETER NO.3","location":"EQ POND","priority":"-","status":"ปกติ","site":"AWP"},{"no":92,"code":"AWP-WW-AD-PVS-1","name":"AIR DRYER No.1","location":"AIRBLOWER ROOM1","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":93,"code":"AW2-WW-AD-PVS-2","name":"AIR DRYER No.2","location":"AIRBLOWER ROOM2","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":94,"code":"AWP-AIR-MCC-AWP","name":"AIR MCC AWP","location":"MCC AWP","priority":"Class A","status":"ชำรุด","site":"AWP"},{"no":95,"code":"AWP-AIR-OFFICE-AWP","name":"AWP OFFICE ROOM AWP","location":"OFFICE ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":96,"code":"AW2-AIR-MCC-2","name":"AIR MCC AW2","location":"MCC AW2","priority":"Class A","status":"ชำรุด","site":"AWP"},{"no":97,"code":"AW2-AIR-OFFICE","name":"AIR OFFICE AW2","location":"OFFICE ROOM AW2","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":98,"code":"AW2-AIR-MEETINGROOM","name":"AIR MEETING ROOM","location":"MEETING ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":99,"code":"AWP-AIR-LAB","name":"AIR LAB AWP","location":"LAB","priority":"Class A","status":"ปกติ","site":"AWP"}];
+const AWP_EQUIP = [{"no":1,"code":"AWP-WW-STM-EQ-1","name":"MAGNETIC FLOW METER EQ","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":2,"code":"AWP-WW-SC-EQ-1","name":"SCREW SCREEN NO.1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":3,"code":"AWP-WW-P-SBW-1","name":"SCREW SCREEN BACKWASH PUMP NO.1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":4,"code":"AWP-WW-SM-EQ-1","name":"SUBMERSIBLE MIXER NO.1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":5,"code":"AWP-WW-SM-EQ-2","name":"SUBMERSIBLE MIXER NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":6,"code":"AWP-WW-P-EQ-1","name":"SBR FEED PUMP NO.1","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":7,"code":"AWP-WW-P-EQ-2","name":"SBR FEED PUMP NO.2","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":8,"code":"AWP-WW-P-SL-1","name":"SLUDGE DRAW OFF PUMP NO.1","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":9,"code":"AWP-WW-P-SL-2","name":"SLUDGE DRAW OFF PUMP NO.2","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":10,"code":"AWP-WW-P-SL-3","name":"SLUDGE DRAW OFF PUMP NO.3","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":11,"code":"AWP-WW-AB-AE-1","name":"AIR BLOWER NO.1","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":12,"code":"AWP-WW-AB-AE-3","name":"AIR BLOWER NO.3","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":13,"code":"AWP-WW-AB-AE-4","name":"AIR BLOWER NO.4","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":14,"code":"AWP-WW-AC-PVS-1","name":"AIR COMPRESSOR FOR AIR BLOWER NO.1","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":15,"code":"AWP-WW-AB-AE-2","name":"AIR BLOWER NO.2","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":16,"code":"AWP-WW-AC-PVS-2","name":"AIR COMPRESSOR FOR AIR BLOWER NO.2","location":"AIR BLOWER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":17,"code":"AWP-WW-SCR-TK-1","name":"MOTOR SLUDGE SCRAPER NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":18,"code":"AWP-WW-P-ST-1","name":"SLUDGE FEED PUMP NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":19,"code":"AWP-WW-P-ST-2","name":"SLUDGE FEED PUMP NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":20,"code":"AWP-WW-BFP-SL-1","name":"BELT FILTERPRESS SYSTEM NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":21,"code":"AWP-WW-P-BW-1","name":"BANDWASH WATER PUMP OF BELTPRESS NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":22,"code":"AWP-WW-P-BW-2","name":"BANDWASH WATER PUMP OF BELTPRESS NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":23,"code":"AWP-WW-P-SW-1","name":"SERVICE WATER PUMP NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":24,"code":"AWP-WW-P-SW-2","name":"SERVICE WATER PUMP NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":25,"code":"AWP-WW-MX-PL-1","name":"POLYMER MIXER NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":26,"code":"AWP-WW-AC-MIT-2","name":"AIR COMPRESSOR FOR BELT PRESS NO.2","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":27,"code":"AWP-WW-AC-MIT-1","name":"AIR COMPRESSOR FOR BELT PRESS NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":28,"code":"AWP-WW-SH-1","name":"SLUDGE HOPPER NO.1","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":29,"code":"AWP-WW-P-SA-1","name":"SULFURIC ACID FEED PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":30,"code":"AWP-WW-P-NA-1","name":"SODIUM HYDROXIDE FEED PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":31,"code":"AWP-WW-P-PL-1","name":"POLYMER FEED PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":32,"code":"AWP-WW-P-PL-2","name":"POLYMER FEED PUMP NO.2","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":33,"code":"AWP-WW-P-PL-3","name":"POLYMER FEED PUMP NO.3","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":34,"code":"AWP-WW-P-DS-1","name":"SUMP PUMP NO.1","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":35,"code":"AWP-WW-INS-PH-1","name":"PH ANALYZER NO.1","location":"SBR TANK","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":36,"code":"AWP-WW-INS-DO-SBR-1","name":"DO ANALYZER NO.1","location":"SBR TANK","priority":"Class B","status":"ยกเลิกการใช้งาน","site":"AWP"},{"no":37,"code":"AWP-WW-INS-DO-SBR-2","name":"DO ANALYZER NO.2","location":"SBR TANK","priority":"Class B","status":"ยกเลิกการใช้งาน","site":"AWP"},{"no":38,"code":"AWP-WW-INS-DO-SBR-3","name":"DO ANALYZER NO.3","location":"SBR TANK","priority":"Class B","status":"ยกเลิกการใช้งาน","site":"AWP"},{"no":39,"code":"AWP-WW-MCC1","name":"MCC-SBR1","location":"CONTROL ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":40,"code":"AWP-WW-PLC1","name":"PLC-SBR1","location":"CONTROL ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":41,"code":"AWP-WW-DIF-1","name":"Fine Bubble Diffuser","location":"SBR TANK","priority":"-","status":"ชำรุด","site":"AWP"},{"no":42,"code":"AWPWW-PULLEY-2T-NO1","name":"รอกโซ่ SBR No.1","location":"AW1","priority":"Class C","status":"ปกติ","site":"AWP"},{"no":43,"code":"AWPWW-PULLEY-2T-NO2","name":"รอกโซ่ SBR No.2","location":"AW1","priority":"Class C","status":"ปกติ","site":"AWP"},{"no":44,"code":"AWPWW-PULLEY-2T-NO3","name":"รอกมือหมุน EQ NO1","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":45,"code":"AWP-WW-FE-EQ-2","name":"MAGNETIC FLOW METER FOR SBR NO.1-3","location":"AW1","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":46,"code":"AMT-WW-TRAN-1","name":"TRANSFORMER NO.1","location":"AW1","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":47,"code":"AMT-WW-TRAN-2","name":"TRANSFORMER NO.2","location":"AW2","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":48,"code":"AW2-WW-FE-EQ-1","name":"MAGNETIC FLOW METER FOR SBR NO.4-6","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":49,"code":"AW2-WW-MCC-PLC-2","name":"MCC-PLC-SBR2","location":"CONTROL ROOM2","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":50,"code":"AW2-WW-SC-EQ-2","name":"SCREW SCREEN NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":51,"code":"AW2-WW-P-SC-EQ-2","name":"SCREW SCREEN PUMP NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":52,"code":"AW2-WW-P-EQ-3","name":"SBR FEED PUMP NO.3","location":"EQ POND","priority":"Class A","status":"ชำรุด","site":"AWP"},{"no":53,"code":"AW2-WW-P-EQ-4","name":"SBR FEED PUMP NO.4","location":"EQ POND","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":54,"code":"AW2-WW-P-SL-4","name":"SLUDGE DRAW OFF PUMP NO.4","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":55,"code":"AW2-WW-P-SL-5","name":"SLUDGE DRAW OFF PUMP NO.5","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":56,"code":"AW2-WW-P-SL-6","name":"SLUDGE DRAW OFF PUMP NO.6","location":"AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":57,"code":"AW2-WW-AB-AE-5","name":"AIR BLOWER NO.5","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":58,"code":"AW2-WW-AB-AE-6","name":"AIR BLOWER NO.6","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":59,"code":"AW2-WW-AB-AE-7","name":"AIR BLOWER NO.7","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":60,"code":"AW2-WW-AB-AE-8","name":"AIR BLOWER NO.8","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":61,"code":"AW2-WW-AC-PVS-3","name":"AIR COMPRESSOR FOR AIR BLOWER NO.3","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":62,"code":"AW2-WW-AC-PVS-4","name":"AIR COMPRESSOR FOR AIR BLOWER NO.4","location":"AIR BLOWER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":63,"code":"AW2-WW-SCR-TK-2","name":"MOTOR SLUDGE SCRAPER NO.2","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":64,"code":"AW2-WW-P-ST-3","name":"SLUDGE FEED PUMP NO.3","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":65,"code":"AW2-WW-P-ST-4","name":"SLUDGE FEED PUMP NO.4","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":66,"code":"AW2-WW-BFP-SL-2","name":"BELT FILTERPRESS SYSTEM NO.2","location":"DEWATERING ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":67,"code":"AW2-WW-P-BW-3","name":"BANDWASH WATER PUMP OF BELTPRESS NO.3","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":68,"code":"AW2-WW-P-BW-4","name":"BANDWASH WATER PUMP OF BELTPRESS NO.4","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":69,"code":"AW2-WW-P-SW-3","name":"SERVICE WATER PUMP NO.3","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":70,"code":"AW2-WW-P-SW-4","name":"SERVICE WATER PUMP NO.4","location":"THICKENER ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":71,"code":"AW2-WW-MX-PL-2","name":"POLYMER MIXER NO.2","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":72,"code":"AW2-WW-AC-MIT-3","name":"AIR COMPRESSOR FOR BELTPRESS NO.3","location":"DEWATERING ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":73,"code":"AW2-WW-AC-MIT-4","name":"AIR COMPRESSOR FOR BELTPRESS NO.4","location":"DEWATERING ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":74,"code":"AW2-WW-P-SA-2","name":"SULFURIC ACID FEED PUMP NO.2","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":75,"code":"AW2-WW-P-NA-2","name":"SODIUM HYDROXIDE FEED PUMP NO.2","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":76,"code":"AW2-WW-P-PL-4","name":"POLYMER FEED PUMP NO.4","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":77,"code":"AW2-WW-P-PL-5","name":"POLYMER FEED PUMP NO.5","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":78,"code":"AW2-WW-P-PL-6","name":"POLYMER FEED PUMP NO.6","location":"THICKENER ROOM2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":79,"code":"AW2-WW-P-DS-2","name":"SUMP PUMP NO.2","location":"MEETING ROOM","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":80,"code":"AW2-WW-AE-SBR4","name":"DO ANALYZER NO.4 FOR SBR TANK4-5","location":"SBR TANK","priority":"Class B","status":"ยกเลิกการใช้งาน","site":"AWP"},{"no":81,"code":"AW2-WW-AE-SBR5","name":"DO ANALYZER NO.6 FOR SBR TANK 6","location":"SBR TANK","priority":"Class B","status":"ยกเลิกการใช้งาน","site":"AWP"},{"no":82,"code":"AW2-WW-AE-NT-1","name":"PH+CONDUCT ANALYZER FOR SBR4-6","location":"SBR TANK","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":83,"code":"AW2-WW-AE-COD-1","name":"BOD/COD ONLINE ANALYZER","location":"AW2","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":84,"code":"AMT-WW-P-RE-1","name":"REUSE PUMP NO.1","location":"POLISHING POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":85,"code":"AMT-WW-P-RE-2","name":"REUSE PUMP NO.2","location":"POLISHING POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":86,"code":"AMT-WW-P-RE-3","name":"REUSE PUMP NO.3","location":"POLISHING POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":87,"code":"AWP-WW-SM-SP-01","name":"SUBMERSIBLE PUMP NO.01","location":"MN ROOM","priority":"Class C","status":"ปกติ","site":"AWP"},{"no":88,"code":"AWP-WW-SH-2","name":"SLUDGE HOPPER NO.2","location":"THICKENER ROOM 2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":89,"code":"AWP-WW-P-SBW-2","name":"SCREW SCREEN BACKWASH PUMP NO.2","location":"EQ POND","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":90,"code":"AWP-WW-PA","name":"Pneumatic Actuator","location":"AW1-AW2","priority":"Class B","status":"ปกติ","site":"AWP"},{"no":91,"code":"AWP-WW-FE-EQ-03","name":"MAGNETIC FLOWMETER NO.3","location":"EQ POND","priority":"-","status":"ปกติ","site":"AWP"},{"no":92,"code":"AWP-WW-AD-PVS-1","name":"AIR DRYER No.1","location":"AIRBLOWER ROOM1","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":93,"code":"AW2-WW-AD-PVS-2","name":"AIR DRYER No.2","location":"AIRBLOWER ROOM2","priority":"Class B","status":"ชำรุด","site":"AWP"},{"no":94,"code":"AWP-AIR-MCC-AWP","name":"AIR MCC AWP","location":"MCC AWP","priority":"Class A","status":"ชำรุด","site":"AWP"},{"no":95,"code":"AWP-AIR-OFFICE-AWP","name":"AWP OFFICE ROOM AWP","location":"OFFICE ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":96,"code":"AW2-AIR-MCC-2","name":"AIR MCC AW2","location":"MCC AW2","priority":"Class A","status":"ชำรุด","site":"AWP"},{"no":97,"code":"AW2-AIR-OFFICE","name":"AIR OFFICE AW2","location":"OFFICE ROOM AW2","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":98,"code":"AW2-AIR-MEETINGROOM","name":"AIR MEETING ROOM","location":"MEETING ROOM","priority":"Class A","status":"ปกติ","site":"AWP"},{"no":99,"code":"AWP-AIR-LAB","name":"AIR LAB AWP","location":"LAB","priority":"Class A","status":"ปกติ","site":"AWP"}];
 const AW3_EQUIP = [{"no":1,"code":"AW3-RCP-P-0101A","name":"UF FEED PUMP A","location":"RAW WATER","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":2,"code":"AW3-RCP-P-0101B","name":"UF FEED PUMP B","location":"RAW WATER","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":3,"code":"AW3-RCP-P-0101C","name":"UF FEED PUMP C","location":"RAW WATER","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":4,"code":"AW3-RCP-P-0102A","name":"UF BACKWASH PUMP A","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":5,"code":"AW3-RCP-P-0102B","name":"UF BACKWASH PUMP B","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":6,"code":"AW3-RCP-P-0201A","name":"RO FEED PUMP A","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":7,"code":"AW3-RCP-P-0201B","name":"RO FEED PUMP B","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":8,"code":"AW3-RCP-P-0201C","name":"RO FEED PUMP C","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":9,"code":"AW3-RCP-P-0103A","name":"MIXING PUMP A","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":10,"code":"AW3-RCP-P-0103B","name":"MIXING PUMP B","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":11,"code":"AW3-RCP-P-0501A","name":"SUMP PIT PUMP A","location":"SUMP PIT","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":12,"code":"AW3-RCP-P-0501B","name":"SUMP PIT PUMP B","location":"SUMP PIT","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":13,"code":"AW3-RCP-P0202A","name":"HIGH PRESSURE PUMP A","location":"RO SYSTEM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":14,"code":"AW3-RCP-P0202B","name":"HIGH PRESSURE PUMP B","location":"RO SYSTEM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":15,"code":"AW3-RCP-P0202C","name":"HIGH PRESSURE PUMP C","location":"RO SYSTEM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":16,"code":"AW3-RCP-P-0302A","name":"RECIRCULATION PUMP (OZONE) A","location":"RO STROKE TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":17,"code":"AW3-RCP-P-0302B","name":"RECIRCULATION PUMP (OZONE) B","location":"RO STROKE TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":18,"code":"AW3-RCP-P-0301A","name":"SUPPLY PUMP A","location":"RO STROKE TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":19,"code":"AW3-RCP-P-0301B","name":"SUPPLY PUMP B","location":"RO STROKE TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":20,"code":"AW3-RCP-P-0301C","name":"SUPPLY PUMP C","location":"RO STROKE TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":21,"code":"AW3-RCP-P-0401A","name":"CIP / EFM PUMP A","location":"CIP TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":22,"code":"AW3-RCP-P-0401B","name":"CIP / EFM PUMP B","location":"CIP TANK","priority":"Class B","status":"ชำรุด","site":"AW3"},{"no":23,"code":"AW3-RCP-P-0402A","name":"CHLORINE FEED FOR CIP A","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":24,"code":"AW3-RCP-P-0402B","name":"CHLORINE FEED FOR CIP B","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":25,"code":"AW3-RCP-P-0403A","name":"PRE CHLORINE FEED PUMP A","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":26,"code":"AW3-RCP-P-0403B","name":"PRE CHLORINE FEED PUMP B","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":27,"code":"AW3-RCP-P-0404A","name":"POST CHLORINE FEED PUMP A","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":28,"code":"AW3-RCP-P-0404B","name":"POST CHLORINE FEED PUMP B","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":29,"code":"AW3-RCP-P-0405A","name":"SBS FEED PUMP A","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":30,"code":"AW3-RCP-P-0405B","name":"SBS FEED PUMP B","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":31,"code":"AW3-RCP-P-0407A","name":"ANTISCALE FEED PUMP A","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":32,"code":"AW3-RCP-P-0407B","name":"ANTISCALE FEED PUMP B","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":33,"code":"AW3-RCP-P-0407C","name":"ANTISCALE FEED PUMP C","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":34,"code":"AW3-RCP-P-0406A","name":"BIOCIDE FEED PUMP A","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":35,"code":"AW3-RCP-P-0406B","name":"BIOCIDE FEED PUMP B","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":36,"code":"AW3-RCP-P-0406C","name":"BIOCIDE FEED PUMP C","location":"CHEMICAL ROOM","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":37,"code":"AW3-RCP-AC-0101A","name":"AIR COMPRESSOR A","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":38,"code":"AW3-RCP-AC-0101B","name":"AIR COMPRESSOR B","location":"RO FEED TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":39,"code":"AW3-RCP-G-0301A","name":"OZONE GENERATOR","location":"AW3","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":40,"code":"AW3-RCP-AD-0301A","name":"AIR DRYER","location":"RO FEED TANK","priority":"Class A","status":"ปกติ","site":"AW3"},{"no":41,"code":"AW3-RCP-F-0101-A","name":"AUTO STRAINER A","location":"RAW WATER","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":42,"code":"AW3-RCP-F-0101-B","name":"AUTO STRAINER B","location":"RAW WATER","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":43,"code":"AW3-RCP-AG-0404","name":"ANTISCALE (MIXER)","location":"ANTISCALE TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":44,"code":"AW3-RCP-AG-0405","name":"BIOCIDE (MIXER)","location":"BIOCIDE TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":45,"code":"AW3-RCP-AT-0201","name":"FLOW METER RO CONDUCTIVITY NO.1","location":"RO LOCAL PANEL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":46,"code":"AW3-RCP-AT-0202","name":"FLOWMETER RO CONDUCTIVITY NO.2","location":"RO LOCAL PANEL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":47,"code":"AW3-RCP-AT-0301","name":"FLOWMETER RO STORAGE CONDUCTIVITY","location":"RO STORAGE TANK LOCAL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":48,"code":"AW3-RCP-AT-0302","name":"FLOWMETER RO STORAGE ORP","location":"RO STORAGE TANK LOCAL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":49,"code":"AW3-RCP-FT-0101","name":"FLOWMETER UF FEED NO.1","location":"UF 1","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":50,"code":"AW3-RCP-FT-0102","name":"FLOWMETER UF FEED NO.2","location":"UF 2","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":51,"code":"AW3-RCP-FT-0103","name":"FLOWMETER UF BACK WASH","location":"RO FEED TANK LOCAL P","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":52,"code":"AW3-RCP-FT-0104","name":"FLOWMETER UF PRODUCT NO.1","location":"UF 1","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":53,"code":"AW3-RCP-FT-0105","name":"FLOWMETER UF PRODUCT NO.2","location":"UF 2","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":54,"code":"AW3-RCP-FT-0201","name":"FLOWMETER RO FEED","location":"RO FEED TANK LOCAL P","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":55,"code":"AW3-RCP-FT-0202","name":"FLOWMETER RO PRODUCT NO.1","location":"RO LOCAL PANEL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":56,"code":"AW3-RCP-FT-0203","name":"FLOWMETER RO REJECT NO.1","location":"RO LOCAL PANEL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":57,"code":"AW3-RCP-FT-0204","name":"FLOWMETER RO PRODUCT NO.2","location":"RO LOCAL PANEL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":58,"code":"AW3-RCP-FT-0205","name":"FLOWMETER RO REJECT NO.2","location":"RO LOCAL PANEL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":59,"code":"AW3-RCP-FT-0301","name":"SUPPLY METER","location":"RO SYSTEM","priority":"Class A","status":"ปกติ","site":"AW3"},{"no":60,"code":"AW3-RCP-LT-0301","name":"LEVEL TRANSMITTER","location":"RO STORAGE LOCAL PANEL","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":61,"code":"AW3-RCP-UF-0101","name":"UF SYSTEM MEMBRANE NO.1","location":"AW3","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":62,"code":"AW3-RCP-UF-0102","name":"UF SYSTEM MEMBRANE NO.2","location":"AW3","priority":"Class B","status":"ชำรุด","site":"AW3"},{"no":63,"code":"AW3-RCP-MCC","name":"MCC AW3","location":"MCC ROOM","priority":"Class A","status":"ปกติ","site":"AW3"},{"no":64,"code":"AW3-RCP-RO-0201","name":"RO SKID UNIT NO.1","location":"AW3","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":65,"code":"AW3-RCP-RO-0202","name":"RO SKID UNIT NO.2","location":"AW3","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":66,"code":"AW3-RCP-PLC","name":"MCC PLC AW3","location":"MCC","priority":"Class A","status":"ปกติ","site":"AW3"},{"no":67,"code":"AW3-RCP-AG-0403","name":"SBS MIXER","location":"SBS TANK","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":68,"code":"AW3-AIR-MCC-1","name":"AIR MCC AW3 NO.1","location":"MCC AW3","priority":"Class B","status":"ปกติ","site":"AW3"},{"no":69,"code":"AW3-AIR-MCC-2","name":"AIR MCC AW3 NO.2","location":"MCC AW3","priority":"Class B","status":"ปกติ","site":"AW3"}];
 
 // ══ EQUIPMENT DASHBOARD ══
@@ -799,7 +808,7 @@ function filterSite(site,btn){
 function filterStatus(s,btn){
   currentStatus=s;
   document.querySelectorAll('.sf-btn').forEach(function(b){
-    if(['ทั้งหมด','ปกติ','ชำรุด','ส่งซ่อม'].indexOf(b.textContent)>=0) b.classList.remove('active');
+    if(['ทั้งหมด','ปกติ','ชำรุด','ส่งซ่อม','ยกเลิกการใช้งาน'].indexOf(b.textContent)>=0) b.classList.remove('active');
   });
   btn.classList.add('active'); applyFilters();
 }
@@ -845,6 +854,7 @@ function statusBadge(s,small){
   if(s==='ปกติ') return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);color:var(--green);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;"></span>ปกติ</span>';
   if(s==='ชำรุด') return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--red-bg);color:var(--red);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;"><span style="font-size:10px;">⚠</span>ชำรุด</span>';
   if(s==='ส่งซ่อม') return '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;"><span style="font-size:10px;">🔧</span>ส่งซ่อม</span>';
+  if(s==='ยกเลิกการใช้งาน') return '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(100,116,139,0.18);color:var(--text2);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;"><span style="font-size:10px;">🚫</span>ยกเลิกการใช้งาน</span>';
   return '<span style="color:var(--text3);font-size:10px">'+s+'</span>';
 }
 
@@ -859,12 +869,14 @@ function renderKpi(data){
   var ok=data.filter(function(e){return e.status==='ปกติ';}).length;
   var broken=data.filter(function(e){return e.status==='ชำรุด';}).length;
   var repair=data.filter(function(e){return e.status==='ส่งซ่อม';}).length;
+  var retired=data.filter(function(e){return e.status==='ยกเลิกการใช้งาน';}).length;
   var pct=data.length>0?Math.round(ok/data.length*100):0;
   document.getElementById('dash-kpi').innerHTML=
     '<div class="stat-card"><div class="stat-label">เครื่องจักรทั้งหมด</div><div class="stat-value" style="color:var(--text)">'+data.length+'</div><div class="stat-sub">เครื่อง</div></div>'+
     '<div class="stat-card"><div class="stat-label">สถานะปกติ</div><div class="stat-value" style="color:var(--green)">'+ok+'</div><div class="stat-sub">'+pct+'% ของทั้งหมด</div></div>'+
     '<div class="stat-card"><div class="stat-label">สถานะชำรุด</div><div class="stat-value" style="color:var(--red)">'+broken+'</div><div class="stat-sub">'+(broken>0?'⚠ ต้องดำเนินการ':'✓ ไม่มี')+'</div></div>'+
-    '<div class="stat-card"><div class="stat-label">ส่งซ่อม</div><div class="stat-value" style="color:var(--blue)">'+repair+'</div><div class="stat-sub">'+(repair>0?'🔧 อยู่ระหว่างซ่อม':'—')+'</div></div>';
+    '<div class="stat-card"><div class="stat-label">ส่งซ่อม</div><div class="stat-value" style="color:var(--blue)">'+repair+'</div><div class="stat-sub">'+(repair>0?'🔧 อยู่ระหว่างซ่อม':'—')+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">ยกเลิกการใช้งาน</div><div class="stat-value" style="color:var(--text2)">'+retired+'</div><div class="stat-sub">'+(retired>0?'🚫 ไม่ใช้งานแล้ว':'—')+'</div></div>';
 }
 
 function renderGroups(data){
@@ -894,8 +906,10 @@ function renderGroups(data){
     var ok=items.filter(function(e){return e.status==='ปกติ';}).length;
     var broken=items.filter(function(e){return e.status==='ชำรุด';}).length;
     var repair=items.filter(function(e){return e.status==='ส่งซ่อม';}).length;
+    var retired=items.filter(function(e){return e.status==='ยกเลิกการใช้งาน';}).length;
     var hasBroken=broken>0;
     var hasRepair=repair>0;
+    var hasRetired=retired>0;
     var hasIssue=hasBroken||hasRepair;
     var safeId=loc.replace(/[^a-zA-Z0-9]/g,'_');
     var isCollapsed=!!collapsedGroups[loc];
@@ -905,6 +919,7 @@ function renderGroups(data){
     if(hasBroken) hdrBadge += '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--red-bg);color:var(--red);font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:4px;"><span>⚠</span>ชำรุด '+broken+'</span>';
     if(hasRepair) hdrBadge += '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--blue-bg);color:var(--blue);font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:4px;"><span>🔧</span>ส่งซ่อม '+repair+'</span>';
     if(!hasIssue) hdrBadge = '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);color:var(--green);font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;"></span>ปกติ</span>';
+    if(hasRetired) hdrBadge += '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(100,116,139,0.18);color:var(--text2);font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:4px;"><span>🚫</span>ยกเลิกการใช้งาน '+retired+'</span>';
 
     var borderColor = hasBroken ? 'rgba(239,68,68,0.3)' : (hasRepair ? 'rgba(59,130,246,0.3)' : 'var(--border)');
     html+='<div style="background:var(--card);border:1px solid '+borderColor+';border-radius:var(--r);margin-bottom:12px;">';
@@ -924,8 +939,10 @@ function renderGroups(data){
     items.forEach(function(e){
       var isBroken=e.status==='ชำรุด';
       var isRepair=e.status==='ส่งซ่อม';
-      var cardBorder = isBroken ? 'rgba(239,68,68,0.4)' : (isRepair ? 'rgba(59,130,246,0.4)' : 'var(--border)');
-      html+='<div class="equip-mini-card" onclick="openStatusModal(\''+e.code+'\')" style="background:var(--bg3);border:1px solid '+cardBorder+';border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;">';
+      var isRetired=e.status==='ยกเลิกการใช้งาน';
+      var cardBorder = isBroken ? 'rgba(239,68,68,0.4)' : (isRepair ? 'rgba(59,130,246,0.4)' : (isRetired ? 'rgba(100,116,139,0.35)' : 'var(--border)'));
+      var cardOpacity = isRetired ? 'opacity:.6;' : '';
+      html+='<div class="equip-mini-card" onclick="openStatusModal(\''+e.code+'\')" style="background:var(--bg3);border:1px solid '+cardBorder+';border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;'+cardOpacity+'">';
       // Icon + code
       html+='<div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">';
       html+='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="color:var(--text3);flex-shrink:0"><path d="M7 4v2h3v2H7l-2 2v3H3v-3H1v8h2v-3h2v3h3l2 2h8v-4h2v-4h-2V9h-4V7h-2V4H7zm6 0h2v2h-2zm3 0h1v2h-1z"/></svg>';
@@ -950,10 +967,11 @@ function renderDashCharts(data){
   var ok=data.filter(function(e){return e.status==='ปกติ';}).length;
   var broken=data.filter(function(e){return e.status==='ชำรุด';}).length;
   var repair=data.filter(function(e){return e.status==='ส่งซ่อม';}).length;
+  var retired=data.filter(function(e){return e.status==='ยกเลิกการใช้งาน';}).length;
   var pct=data.length>0?Math.round(ok/data.length*100):0;
 
   mkChart('pieChart',{type:'doughnut',
-    data:{labels:['ปกติ','ชำรุด','ส่งซ่อม'],datasets:[{data:[ok,broken,repair],backgroundColor:['#10b981','#ef4444','#3b82f6'],borderWidth:0,hoverOffset:4}]},
+    data:{labels:['ปกติ','ชำรุด','ส่งซ่อม','ยกเลิกการใช้งาน'],datasets:[{data:[ok,broken,repair,retired],backgroundColor:['#10b981','#ef4444','#3b82f6','#64748b'],borderWidth:0,hoverOffset:4}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}
   });
 
@@ -962,6 +980,7 @@ function renderDashCharts(data){
     '<div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:2px;background:#10b981;flex-shrink:0;"></span><span style="font-size:12px;color:var(--text2)">ปกติ</span><span style="margin-left:auto;font-weight:700;color:var(--green);font-size:18px;">'+ok+'</span><span style="font-size:10px;color:var(--text3)">เครื่อง ('+pct+'%)</span></div>'+
     '<div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:2px;background:#ef4444;flex-shrink:0;"></span><span style="font-size:12px;color:var(--text2)">ชำรุด</span><span style="margin-left:auto;font-weight:700;color:var(--red);font-size:18px;">'+broken+'</span><span style="font-size:10px;color:var(--text3)">เครื่อง</span></div>'+
     '<div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:2px;background:#3b82f6;flex-shrink:0;"></span><span style="font-size:12px;color:var(--text2)">ส่งซ่อม</span><span style="margin-left:auto;font-weight:700;color:var(--blue);font-size:18px;">'+repair+'</span><span style="font-size:10px;color:var(--text3)">เครื่อง</span></div>'+
+    '<div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:2px;background:#64748b;flex-shrink:0;"></span><span style="font-size:12px;color:var(--text2)">ยกเลิกการใช้งาน</span><span style="margin-left:auto;font-weight:700;color:var(--text2);font-size:18px;">'+retired+'</span><span style="font-size:10px;color:var(--text3)">เครื่อง</span></div>'+
     '</div>';
 
   var bA=data.filter(function(e){return e.status==='ชำรุด'&&e.priority==='Class A';}).length;
@@ -1088,23 +1107,76 @@ function switchWTab(tab,btn){
 
 // DATE PICKER
 var FORECAST=JSON.parse('{"wwtp":{"title":"\u0e19\u0e49\u0e33\u0e40\u0e2a\u0e35\u0e22\u0e40\u0e02\u0e49\u0e32\u0e23\u0e30\u0e1a\u0e1a\u0e2f (AWP+AW2)","months":["\u0e21.\u0e04.","\u0e01.\u0e1e.","\u0e21\u0e35.\u0e04.","\u0e40\u0e21.\u0e22.","\u0e1e.\u0e04.","\u0e21\u0e34.\u0e22.","\u0e01.\u0e04.","\u0e2a.\u0e04.","\u0e01.\u0e22.","\u0e15.\u0e04.","\u0e1e.\u0e22.","\u0e18.\u0e04."],"budget_monthly":[204166,204166,204166,204166,204166,204166,204166,204166,204166,204166,204166,204174],"actual_monthly":[176138,224129,197883,197993,259877,null,null,null,null,null,null,null],"target_cum":[204166,408332,612498,816664,1020830,1224996,1429162,1633328,1837494,2041660,2245826,2450000],"actual_cum":[176138,400267,598150,796143,1056020,null,null,null,null,null,null,null],"annual_target":2450000,"actual_to_date":1056020,"remaining":1393980,"remaining_per_day":6513.93,"months_done":5},"wrtp":{"title":"\u0e19\u0e49\u0e33\u0e08\u0e48\u0e32\u0e22\u0e23\u0e35\u0e40\u0e04\u0e25\u0e21 (AW3)","months":["\u0e21.\u0e04.","\u0e01.\u0e1e.","\u0e21\u0e35.\u0e04.","\u0e40\u0e21.\u0e22.","\u0e1e.\u0e04.","\u0e21\u0e34.\u0e22.","\u0e01.\u0e04.","\u0e2a.\u0e04.","\u0e01.\u0e22.","\u0e15.\u0e04.","\u0e1e.\u0e22.","\u0e18.\u0e04."],"budget_monthly":[45600,55100,49400,45600,53200,55100,53200,55100,55100,53200,55100,51300],"actual_monthly":[26769,37583,35043,32249,39471,null,null,null,null,null,null,null],"target_cum":[45600,100700,150100,195700,248900,304000,357200,412300,467400,520600,575700,627000],"actual_cum":[26769,64352,99395,131644,171115,null,null,null,null,null,null,null],"annual_target":627000,"actual_to_date":171115,"remaining":455885,"remaining_per_day":2130.3,"months_done":5}}');
+var TH_MONTH_ABBR=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var MONTHS_LIST=[];
 var currentDate=LAST_DATE, datePickerBuilt=false;
 function buildDatePicker(){
   if(datePickerBuilt)return; datePickerBuilt=true;
+
+  // Group dates by year-month
+  var monthMap={};
+  ALL_DATES.forEach(function(item){
+    var ym=item[0].slice(0,7);
+    if(!monthMap[ym]) monthMap[ym]=[];
+    monthMap[ym].push(item);
+  });
+  var keys=Object.keys(monthMap).sort();
+  var monthSel=document.getElementById('monthSelect');
+  keys.forEach(function(ym){
+    var parts=ym.split('-'); var y=+parts[0], mo=+parts[1];
+    var label=TH_MONTH_ABBR[mo-1]+' '+(y+543);
+    var o=document.createElement('option'); o.value=ym; o.textContent=label;
+    monthSel.appendChild(o);
+    MONTHS_LIST.push({key:ym,dates:monthMap[ym]});
+  });
+
+  var lastYm=LAST_DATE.slice(0,7);
+  monthSel.value=lastYm;
+  populateDaySelect(lastYm);
+  document.getElementById('dateSelect').value=LAST_DATE;
+  updateDateInfo(); renderWwtp(LAST_DATE); renderWrtp(LAST_DATE);
+}
+function populateDaySelect(ym){
   var sel=document.getElementById('dateSelect');
-  ALL_DATES.slice().reverse().forEach(function(item){var o=document.createElement('option');o.value=item[0];o.textContent=item[1];sel.appendChild(o);});
-  sel.value=LAST_DATE; updateDateInfo(); renderWwtp(LAST_DATE); renderWrtp(LAST_DATE);
+  sel.innerHTML='';
+  var entry=MONTHS_LIST.find(function(m){return m.key===ym;});
+  if(!entry)return;
+  entry.dates.slice().reverse().forEach(function(item){
+    var o=document.createElement('option'); o.value=item[0]; o.textContent=item[1]; sel.appendChild(o);
+  });
+}
+function onMonthChange(ym){
+  populateDaySelect(ym);
+  var entry=MONTHS_LIST.find(function(m){return m.key===ym;});
+  var last=entry.dates[entry.dates.length-1];
+  currentDate=last[0];
+  document.getElementById('dateSelect').value=currentDate;
+  updateDateInfo(); renderWwtp(currentDate); renderWrtp(currentDate);
 }
 function onDateChange(val){currentDate=val;updateDateInfo();renderWwtp(val);renderWrtp(val);}
 function stepDate(dir){
   var idx=ALL_DATES.findIndex(function(item){return item[0]===currentDate;});
   var next=idx+dir; if(next<0||next>=ALL_DATES.length)return;
-  currentDate=ALL_DATES[next][0]; document.getElementById('dateSelect').value=currentDate;
+  currentDate=ALL_DATES[next][0];
+  var ym=currentDate.slice(0,7);
+  if(document.getElementById('monthSelect').value!==ym){
+    document.getElementById('monthSelect').value=ym;
+    populateDaySelect(ym);
+  }
+  document.getElementById('dateSelect').value=currentDate;
   updateDateInfo(); renderWwtp(currentDate); renderWrtp(currentDate);
 }
+function isLeapYear(y){return (y%4===0&&y%100!==0)||y%400===0;}
 function updateDateInfo(){
-  var idx=ALL_DATES.findIndex(function(item){return item[0]===currentDate;});
-  document.getElementById('dateInfo').textContent='('+(idx+1)+' / '+ALL_DATES.length+' วัน)';
+  var parts=currentDate.split('-');
+  var y=+parts[0], mo=+parts[1], d=+parts[2];
+  var dim=[31,28,31,30,31,30,31,31,30,31,30,31];
+  if(isLeapYear(y)) dim[1]=29;
+  var doy=d;
+  for(var i=0;i<mo-1;i++) doy+=dim[i];
+  var total=isLeapYear(y)?366:365;
+  var remain=total-doy;
+  document.getElementById('dateInfo').textContent='ผ่านไป '+doy+' วัน · เหลือ '+remain+' วัน · รวม '+total+' วัน';
 }
 
 // HELPERS
@@ -1468,10 +1540,8 @@ function renderForecast(){
   h+='<div style="font-size:10px;color:var(--text3);margin-top:4px;">เส้นเหลือง = เป้าตามแผน ณ จำนวนวันที่ผ่านไปจริง</div>';
   h+='</div>';
 
-  h+='<div class="grid-2" style="margin-bottom:14px;">';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--cyan)"></span>S-Curve: เป้าหมาย vs ผลสะสม (m³)</div><div class="chart-wrap" style="height:220px;"><canvas id="fc_w_scurve"></canvas></div></div>';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>รายเดือน: Budget vs Actual (m³)</div><div class="chart-wrap" style="height:220px;"><canvas id="fc_w_monthly"></canvas></div></div>';
-  h+='</div>';
+  h+='<div class="card" style="margin-bottom:14px;"><div class="sec-title"><span class="sec-dot" style="background:var(--cyan)"></span>S-Curve: เป้าหมาย vs ผลสะสม (m³)</div><div class="chart-wrap" style="height:200px;"><canvas id="fc_w_scurve"></canvas></div></div>';
+  h+='<div class="card" style="margin-bottom:14px;"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>รายเดือน: Budget vs Actual และสรุปรายปี (m³)</div><div class="chart-wrap" style="height:300px;"><canvas id="fc_w_monthly"></canvas></div></div>';
 
   h+='<div class="card" style="margin-bottom:24px;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">';
@@ -1496,10 +1566,8 @@ function renderForecast(){
   h+='<div style="font-size:10px;color:var(--text3);margin-top:4px;">เส้นเหลือง = เป้าตามแผน ณ จำนวนวันที่ผ่านไปจริง</div>';
   h+='</div>';
 
-  h+='<div class="grid-2" style="margin-bottom:14px;">';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>S-Curve: เป้าหมาย vs ผลสะสม (m³)</div><div class="chart-wrap" style="height:220px;"><canvas id="fc_r_scurve"></canvas></div></div>';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--green)"></span>รายเดือน: Budget vs Actual (m³)</div><div class="chart-wrap" style="height:220px;"><canvas id="fc_r_monthly"></canvas></div></div>';
-  h+='</div>';
+  h+='<div class="card" style="margin-bottom:14px;"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>S-Curve: เป้าหมาย vs ผลสะสม (m³)</div><div class="chart-wrap" style="height:200px;"><canvas id="fc_r_scurve"></canvas></div></div>';
+  h+='<div class="card" style="margin-bottom:14px;"><div class="sec-title"><span class="sec-dot" style="background:var(--green)"></span>รายเดือน: Budget vs Actual และสรุปรายปี (m³)</div><div class="chart-wrap" style="height:300px;"><canvas id="fc_r_monthly"></canvas></div></div>';
 
   h+='<div class="card">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">';
@@ -1556,6 +1624,55 @@ function submitForecastEdit(){
   closeForecastModal();
 }
 
+function niceMax(v){
+  if(v<=0) return 100;
+  var mag=Math.pow(10,Math.floor(Math.log10(v)));
+  var step=mag/4;
+  return Math.ceil(v/step)*step;
+}
+function comboLabelPlugin(pctText){
+  return {
+    id:'comboLabels',
+    afterDatasetsDraw:function(chart){
+      var ctx=chart.ctx;
+      var doneEl=null;
+      chart.data.datasets.forEach(function(ds,dsi){
+        var meta=chart.getDatasetMeta(dsi);
+        if(meta.hidden||!ds.showLabels)return;
+        meta.data.forEach(function(el,i){
+          var v=ds.data[i];
+          if(v===null||v===undefined||v===0)return;
+          var txt=ds.labelFmt?ds.labelFmt(v):Math.round(v).toLocaleString('th-TH');
+          ctx.save();
+          ctx.fillStyle=ds.labelColor||'#fff';
+          ctx.font=ds.labelFont||'700 10px sans-serif';
+          if(ds.type==='line'){
+            ctx.textAlign='center';ctx.textBaseline='bottom';
+            ctx.fillText(txt,el.x,el.y-6);
+          }else{
+            var cx=el.x, cy=(el.y+el.base)/2;
+            ctx.translate(cx,cy);ctx.rotate(-Math.PI/2);
+            ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.fillText(txt,0,0);
+            if(ds.isDone) doneEl={x:el.x,y:el.y};
+          }
+          ctx.restore();
+        });
+      });
+      if(doneEl && pctText){
+        ctx.save();
+        ctx.fillStyle='#ef4444';
+        ctx.font='700 11px sans-serif';
+        ctx.translate(doneEl.x-15, doneEl.y);
+        ctx.rotate(-Math.PI/2);
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(pctText,0,0);
+        ctx.restore();
+      }
+    }
+  };
+}
+
 function updateForecast(site){
   var f = site==='wwtp' ? FORECAST.wwtp : FORECAST.wrtp;
   var color = site==='wwtp' ? '#06b6d4' : '#818cf8';
@@ -1590,10 +1707,59 @@ function updateForecast(site){
     {label:'ผลสะสมจริง',data:c.actual_cum,borderColor:color,backgroundColor:areaFill,borderWidth:2.5,pointRadius:3,fill:true,tension:0.2}
   ]},options:sOpts});
 
-  mkChart('fc_'+(site==='wwtp'?'w':'r')+'_monthly',{type:'bar',data:{labels:f.months,datasets:[
-    {label:'Budget',data:f.budget_monthly,backgroundColor:'rgba(245,158,11,0.45)',borderRadius:3},
-    {label:'Actual',data:f.actual_monthly,backgroundColor:actualBarColor,borderRadius:3}
-  ]},options:bOpts});
+  // Combo chart: monthly Budget/Actual stack + annual summary bar
+  var actualArr=[], diffArr=[], budgetArr=[];
+  for(var mi=0;mi<12;mi++){
+    var b=f.budget_monthly[mi], a=f.actual_monthly[mi];
+    budgetArr.push(b);
+    if(a===null||a===undefined||a===''){
+      actualArr.push(null);
+      diffArr.push(b);
+    }else{
+      actualArr.push(Number(a));
+      diffArr.push(Math.max(b-Number(a),0));
+    }
+  }
+  actualArr.push(null); diffArr.push(null); budgetArr.push(null);
+  var doneArr=Array(12).fill(null).concat([c.actual_to_date]);
+  var remainArr=Array(12).fill(null).concat([Math.max(c.remaining,0)]);
+  var comboLabels=f.months.concat(['รวม']);
+
+  var maxBudget=Math.max.apply(null,f.budget_monthly);
+  var yMax=niceMax(maxBudget*1.3);
+  var y1Max=niceMax(f.annual_target*1.12);
+
+  var actualLabel = site==='wwtp' ? 'น้ำเสียเข้าระบบฯ' : 'น้ำจ่ายรีเคลม';
+  var doneLabel   = site==='wwtp' ? 'น้ำเสียสะสม 2026' : 'น้ำจ่ายสะสม 2026';
+  var actualColor = site==='wwtp' ? '#38bdf8' : '#34d399';
+
+  var numFmt=function(v){return Math.round(v).toLocaleString('th-TH');};
+
+  mkChart('fc_'+(site==='wwtp'?'w':'r')+'_monthly',{
+    type:'bar',
+    data:{labels:comboLabels,datasets:[
+      {type:'bar',label:actualLabel,data:actualArr,backgroundColor:actualColor,stack:'m',yAxisID:'y',
+        showLabels:true,labelColor:'#0f1117',labelFmt:numFmt},
+      {type:'bar',label:'ส่วนต่าง',data:diffArr,backgroundColor:'#fde047',stack:'m',yAxisID:'y'},
+      {type:'line',label:'Budget 2026',data:budgetArr,borderColor:'#ef4444',backgroundColor:'#ef4444',
+        borderWidth:2,pointRadius:3,pointBackgroundColor:'#ef4444',yAxisID:'y',tension:0,
+        showLabels:true,labelColor:'#ef4444',labelFont:'700 10px sans-serif',labelFmt:numFmt},
+      {type:'bar',label:doneLabel,data:doneArr,backgroundColor:'#3b82f6',stack:'a',yAxisID:'y1',
+        showLabels:true,labelColor:'#fff',labelFmt:numFmt,isDone:true},
+      {type:'bar',label:'คงเหลือ',data:remainArr,backgroundColor:'#22c55e',stack:'a',yAxisID:'y1',
+        showLabels:true,labelColor:'#0f1117',labelFmt:numFmt}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:TC,font:{size:9},boxWidth:10,padding:8}}},
+      scales:{
+        x:{ticks:{color:TC,font:{size:9}},grid:{display:false},border:{display:false}},
+        y:{position:'left',min:0,max:yMax,ticks:{color:TC,font:{size:9},callback:numFmt},grid:{color:GC},border:{display:false}},
+        y1:{position:'right',min:0,max:y1Max,ticks:{color:TC,font:{size:9},callback:numFmt},grid:{display:false},border:{display:false}}
+      }
+    },
+    plugins:[comboLabelPlugin(c.pct_done+'%')]
+  });
 }
 // HISTORY
 var histData=[
