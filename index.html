@@ -498,6 +498,46 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
 
 
 
+<!-- WATER PAGE CONTENT (injected into main shell) -->
+
+<!-- ══ PAGE: WATER ══ -->
+<div id="page-water" class="page">
+
+  <!-- Date bar -->
+  <div class="date-bar" style="margin:-20px -22px 0;padding:9px 22px;">
+    <span class="date-label">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="color:var(--accent2)"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      เลือกวันที่:
+    </span>
+    <button class="date-nav" onclick="stepDate(-1)">&#8249;</button>
+    <div class="date-select-wrap">
+      <select class="date-select" id="dateSelect" onchange="onDateChange(this.value)"></select>
+      <span class="select-chev">&#9660;</span>
+    </div>
+    <button class="date-nav" onclick="stepDate(1)">&#8250;</button>
+    <span class="date-info" id="dateInfo"></span>
+  </div>
+
+  <!-- Water Tabs -->
+  <div class="wtab-bar" style="margin:0 -22px;padding:10px 22px 0;">
+    <button class="wtab-btn active" id="wtab-wwtp-btn" onclick="switchWTab('wwtp',this)">
+      <span>💧</span> ระบบบำบัดน้ำเสีย WWTP-4 ACC1
+    </button>
+    <button class="wtab-btn" id="wtab-wrtp-btn" onclick="switchWTab('wrtp',this)">
+      <span>&#9851;</span> ระบบผลิตน้ำหมุนเวียน WRTP-3 ACC1
+    </button>
+    <button class="wtab-btn" id="wtab-overview-btn" onclick="switchWTab('overview',this)">
+      <span>📊</span> ภาพรวม 30 วัน
+    </button>
+  </div>
+
+  <div style="padding-top:16px;">
+    <div id="wtab-wwtp" class="wtab-pane active"><div id="wwtp-body"></div></div>
+    <div id="wtab-wrtp" class="wtab-pane"><div id="wrtp-body"></div></div>
+    <div id="wtab-overview" class="wtab-pane"><div id="overview-body"></div></div>
+  </div>
+
+</div>
   <!-- ══ PAGE: HISTORY ══ -->
   <div id="page-history" class="page">
     <div class="filter-bar">
