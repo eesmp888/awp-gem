@@ -1223,8 +1223,8 @@ function renderCalendar(){
 }
 
 function renderCalDays(pop){
-  var days=['Mo','Tu','We','Th','Fr','Sa','Su'];
-  var firstDay=(new Date(calYear, calMonth-1, 1).getDay()+6)%7; // Mon-first
+  var days=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  var firstDay=new Date(calYear, calMonth-1, 1).getDay(); // Sun=0, already Sunday-first
   var dim=[31,28,31,30,31,30,31,31,30,31,30,31];
   if((calYear%4===0&&calYear%100!==0)||calYear%400===0) dim[1]=29;
   var total=dim[calMonth-1];
