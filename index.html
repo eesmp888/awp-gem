@@ -108,7 +108,74 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
 .date-nav:hover{background:var(--card);color:var(--text);border-color:var(--border2);}
-.date-info{font-size:10px;color:var(--text3);}
+.date-info{font-size:10px;color:var(--text3);flex-wrap:wrap;}
+
+/* ── CALENDAR PICKER ── */
+.cal-trigger{
+  display:flex;align-items:center;gap:7px;
+  background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  font-size:13px;font-weight:600;padding:6px 13px;border-radius:var(--r-sm);
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.cal-trigger:hover{border-color:var(--accent);}
+.date-bar{position:relative;}
+.cal-popup{
+  position:absolute;top:calc(100% + 6px);left:0;
+  background:var(--card);border:1px solid var(--border2);border-radius:12px;
+  padding:12px 12px 8px;z-index:500;width:224px;
+  box-shadow:0 8px 32px rgba(0,0,0,.45);
+}
+/* header row */
+.cal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.cal-month-label{
+  font-size:14px;font-weight:700;color:var(--text);
+  cursor:pointer;padding:2px 4px;border-radius:6px;letter-spacing:.01em;
+}
+.cal-month-label:hover{background:rgba(255,255,255,.07);}
+.cal-nav-btns{display:flex;gap:4px;}
+.cal-header-btn{
+  width:26px;height:26px;border-radius:6px;border:none;
+  background:var(--accent);color:white;cursor:pointer;font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;line-height:1;transition:opacity .15s;
+}
+.cal-header-btn:hover{opacity:.8;}
+/* day-of-week header */
+.cal-days-header{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  margin-bottom:4px;
+}
+.cal-days-header span{
+  text-align:center;font-size:10px;font-weight:600;
+  color:var(--text3);padding:2px 0;
+}
+/* day grid */
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.cal-day{
+  text-align:center;padding:5px 2px;border-radius:6px;
+  font-size:11px;font-weight:500;color:var(--text2);
+  line-height:1.2;
+}
+.cal-day.has-data{color:var(--text);font-weight:600;cursor:pointer;}
+.cal-day.has-data:hover{background:var(--accent);color:white;}
+.cal-day.active{background:var(--accent);color:white;font-weight:700;}
+.cal-day.no-click{color:var(--text3);cursor:default;}
+.cal-day.empty{pointer-events:none;}
+/* month-view grid (when clicking month label) */
+.cal-month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px;}
+.cal-month-item{
+  text-align:center;padding:7px 3px;border-radius:6px;
+  font-size:11px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .1s;
+}
+.cal-month-item:hover{background:var(--accent);color:white;}
+.cal-month-item.active{background:var(--accent);color:white;}
+.cal-month-item.no-data{opacity:.28;pointer-events:none;}
+@media(max-width:480px){
+  .cal-popup{left:0;right:0;width:auto;}
+}
+}
 
 /* ── WATER TABS ── */
 .wtab-bar{display:flex;gap:3px;padding:12px 22px 0;
@@ -663,15 +730,14 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
       เลือกวันที่:
     </span>
     <button class="date-nav" onclick="stepDate(-1)">&#8249;</button>
-    <div class="date-select-wrap">
-      <select class="date-select" id="monthSelect" onchange="onMonthChange(this.value)" style="min-width:108px;padding-right:28px;"></select>
-      <span class="select-chev">&#9660;</span>
-    </div>
-    <div class="date-select-wrap">
-      <select class="date-select" id="dateSelect" onchange="onDateChange(this.value)" style="min-width:130px;"></select>
-      <span class="select-chev">&#9660;</span>
-    </div>
+    <button class="cal-trigger" id="calTrigger" onclick="toggleCalendar()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      <span id="calDisplay">--</span>
+      <span style="font-size:10px;opacity:.6">&#9660;</span>
+    </button>
     <button class="date-nav" onclick="stepDate(1)">&#8250;</button>
+    <!-- Calendar popup -->
+    <div id="calPopup" class="cal-popup" style="display:none;"></div>
     <span class="date-info" id="dateInfo"></span>
   </div>
 
@@ -1110,60 +1176,144 @@ var FORECAST=JSON.parse('{"wwtp":{"title":"\u0e19\u0e49\u0e33\u0e40\u0e2a\u0e35\
 var TH_MONTH_ABBR=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 var MONTHS_LIST=[];
 var currentDate=LAST_DATE, datePickerBuilt=false;
+var calViewMode='days'; // 'days' or 'months'
+var calYear=0, calMonth=0;
+var DATE_SET={};
+
 function buildDatePicker(){
   if(datePickerBuilt)return; datePickerBuilt=true;
-
-  // Group dates by year-month
-  var monthMap={};
-  ALL_DATES.forEach(function(item){
-    var ym=item[0].slice(0,7);
-    if(!monthMap[ym]) monthMap[ym]=[];
-    monthMap[ym].push(item);
-  });
-  var keys=Object.keys(monthMap).sort();
-  var monthSel=document.getElementById('monthSelect');
-  keys.forEach(function(ym){
-    var parts=ym.split('-'); var y=+parts[0], mo=+parts[1];
-    var label=TH_MONTH_ABBR[mo-1]+' '+(y+543);
-    var o=document.createElement('option'); o.value=ym; o.textContent=label;
-    monthSel.appendChild(o);
-    MONTHS_LIST.push({key:ym,dates:monthMap[ym]});
-  });
-
-  var lastYm=LAST_DATE.slice(0,7);
-  monthSel.value=lastYm;
-  populateDaySelect(lastYm);
-  document.getElementById('dateSelect').value=LAST_DATE;
+  ALL_DATES.forEach(function(item){ DATE_SET[item[0]]=item[1]; });
+  var last=LAST_DATE.split('-');
+  calYear=+last[0]; calMonth=+last[1];
+  setCalDisplay(LAST_DATE);
   updateDateInfo(); renderWwtp(LAST_DATE); renderWrtp(LAST_DATE);
 }
-function populateDaySelect(ym){
-  var sel=document.getElementById('dateSelect');
-  sel.innerHTML='';
-  var entry=MONTHS_LIST.find(function(m){return m.key===ym;});
-  if(!entry)return;
-  entry.dates.slice().reverse().forEach(function(item){
-    var o=document.createElement('option'); o.value=item[0]; o.textContent=item[1]; sel.appendChild(o);
+
+function setCalDisplay(date){
+  var parts=date.split('-');
+  var y=+parts[0], mo=+parts[1], d=+parts[2];
+  document.getElementById('calDisplay').textContent=d+' '+TH_MONTH_ABBR[mo-1]+' '+(y+543);
+}
+
+function toggleCalendar(){
+  var pop=document.getElementById('calPopup');
+  if(pop.style.display==='none'||pop.style.display===''){
+    calViewMode='days';
+    renderCalendar();
+    pop.style.display='block';
+    document.addEventListener('click', calOutsideClick, true);
+  } else {
+    pop.style.display='none';
+    document.removeEventListener('click', calOutsideClick, true);
+  }
+}
+function calOutsideClick(e){
+  var pop=document.getElementById('calPopup');
+  var btn=document.getElementById('calTrigger');
+  if(!pop.contains(e.target) && !btn.contains(e.target)){
+    pop.style.display='none';
+    document.removeEventListener('click', calOutsideClick, true);
+  }
+}
+
+function renderCalendar(){
+  var pop=document.getElementById('calPopup');
+  if(calViewMode==='months'){ renderCalMonths(pop); return; }
+  renderCalDays(pop);
+}
+
+function renderCalDays(pop){
+  var days=['Mo','Tu','We','Th','Fr','Sa','Su'];
+  var firstDay=(new Date(calYear, calMonth-1, 1).getDay()+6)%7; // Mon-first
+  var dim=[31,28,31,30,31,30,31,31,30,31,30,31];
+  if((calYear%4===0&&calYear%100!==0)||calYear%400===0) dim[1]=29;
+  var total=dim[calMonth-1];
+  var activeParts=currentDate.split('-');
+  var activeDay=(+activeParts[0]===calYear&&+activeParts[1]===calMonth)?+activeParts[2]:0;
+
+  var h='<div class="cal-header">';
+  h+='<span class="cal-month-label" onclick="calSwitchToMonths()">'+TH_MONTH_ABBR[calMonth-1]+' '+(calYear+543)+'</span>';
+  h+='<div class="cal-nav-btns">';
+  h+='<button class="cal-header-btn" onclick="calNavMonth(-1)">&#8249;</button>';
+  h+='<button class="cal-header-btn" onclick="calNavMonth(1)">&#8250;</button>';
+  h+='</div></div>';
+
+  h+='<div class="cal-days-header">';
+  days.forEach(function(d){ h+='<span>'+d+'</span>'; });
+  h+='</div>';
+
+  h+='<div class="cal-days" id="calDaysGrid">';
+  for(var i=0;i<firstDay;i++) h+='<div class="cal-day empty"></div>';
+  var mo2=(calMonth<10?'0':'')+calMonth;
+  for(var d2=1;d2<=total;d2++){
+    var dd=(d2<10?'0':'')+d2;
+    var dateStr=calYear+'-'+mo2+'-'+dd;
+    var hasData=!!DATE_SET[dateStr];
+    var isActive=d2===activeDay;
+    // All days show as normal text; only clickable if hasData
+    var cls='cal-day'+(isActive?' active':'')+( hasData?' has-data':' no-click');
+    h+='<div class="'+cls+'"'+(hasData?' id="cd-'+dateStr+'"':'')+'>'+(d2)+'</div>';
+  }
+  h+='</div>';
+
+  pop.innerHTML=h;
+  var grid=document.getElementById('calDaysGrid');
+  if(grid){
+    grid.addEventListener('click',function(e){
+      var el=e.target;
+      if(!el.classList.contains('has-data')) return;
+      var id=el.id; if(!id) return;
+      calSelectDate(id.slice(3));
+    });
+  }
+}
+
+function renderCalMonths(pop){
+  var h='<div class="cal-header">';
+  h+='<span class="cal-month-label">'+(calYear+543)+'</span>';
+  h+='<div class="cal-nav-btns">';
+  h+='<button class="cal-header-btn" onclick="calNavYear(-1)">&#8249;</button>';
+  h+='<button class="cal-header-btn" onclick="calNavYear(1)">&#8250;</button>';
+  h+='</div></div>';
+  h+='<div class="cal-month-grid">';
+  TH_MONTH_ABBR.forEach(function(mn,i){
+    var mo=i+1, ymk=calYear+'-'+(mo<10?'0':'')+mo;
+    var hasM=ALL_DATES.some(function(item){return item[0].startsWith(ymk);});
+    var isAct=+currentDate.split('-')[1]===mo&&+currentDate.split('-')[0]===calYear;
+    var cls='cal-month-item'+(hasM?'':' no-data')+(isAct?' active':'');
+    h+='<div class="'+cls+'" onclick="calSelectMonth('+mo+')">'+mn+'</div>';
   });
+  h+='</div>';
+  pop.innerHTML=h;
 }
-function onMonthChange(ym){
-  populateDaySelect(ym);
-  var entry=MONTHS_LIST.find(function(m){return m.key===ym;});
-  var last=entry.dates[entry.dates.length-1];
-  currentDate=last[0];
-  document.getElementById('dateSelect').value=currentDate;
-  updateDateInfo(); renderWwtp(currentDate); renderWrtp(currentDate);
+
+function calNavMonth(dir){
+  calMonth+=dir;
+  if(calMonth<1){calMonth=12;calYear--;}
+  if(calMonth>12){calMonth=1;calYear++;}
+  renderCalendar();
 }
-function onDateChange(val){currentDate=val;updateDateInfo();renderWwtp(val);renderWrtp(val);}
+function calNavYear(dir){ calYear+=dir; renderCalendar(); }
+function calSwitchToMonths(){ calViewMode='months'; renderCalendar(); }
+function calSelectMonth(mo){
+  calMonth=mo; calViewMode='days'; renderCalendar();
+}
+function calSelectDate(date){
+  currentDate=date;
+  var parts=date.split('-');
+  calYear=+parts[0]; calMonth=+parts[1];
+  setCalDisplay(date);
+  document.getElementById('calPopup').style.display='none';
+  document.removeEventListener('click', calOutsideClick, true);
+  updateDateInfo(); renderWwtp(date); renderWrtp(date);
+}
 function stepDate(dir){
   var idx=ALL_DATES.findIndex(function(item){return item[0]===currentDate;});
   var next=idx+dir; if(next<0||next>=ALL_DATES.length)return;
   currentDate=ALL_DATES[next][0];
-  var ym=currentDate.slice(0,7);
-  if(document.getElementById('monthSelect').value!==ym){
-    document.getElementById('monthSelect').value=ym;
-    populateDaySelect(ym);
-  }
-  document.getElementById('dateSelect').value=currentDate;
+  var parts=currentDate.split('-');
+  calYear=+parts[0]; calMonth=+parts[1];
+  setCalDisplay(currentDate);
   updateDateInfo(); renderWwtp(currentDate); renderWrtp(currentDate);
 }
 function isLeapYear(y){return (y%4===0&&y%100!==0)||y%400===0;}
@@ -1176,7 +1326,26 @@ function updateDateInfo(){
   for(var i=0;i<mo-1;i++) doy+=dim[i];
   var total=isLeapYear(y)?366:365;
   var remain=total-doy;
-  document.getElementById('dateInfo').textContent='ผ่านไป '+doy+' วัน · เหลือ '+remain+' วัน · รวม '+total+' วัน';
+  document.getElementById('dateInfo').innerHTML=
+    '<span style="display:inline-flex;align-items:center;gap:10px;font-size:11px;flex-wrap:wrap;">' +
+    '<span style="display:inline-flex;align-items:center;gap:4px;">' +
+      '<span style="color:var(--text3)">ผ่านมา</span>' +
+      '<span style="color:var(--accent2);font-weight:700;">'+doy+'</span>' +
+      '<span style="color:var(--text3)">วัน</span>' +
+    '</span>' +
+    '<span style="color:var(--border2)">|</span>' +
+    '<span style="display:inline-flex;align-items:center;gap:4px;">' +
+      '<span style="color:var(--text3)">เหลือ</span>' +
+      '<span style="color:var(--yellow);font-weight:700;">'+remain+'</span>' +
+      '<span style="color:var(--text3)">วัน</span>' +
+    '</span>' +
+    '<span style="color:var(--border2)">|</span>' +
+    '<span style="display:inline-flex;align-items:center;gap:4px;">' +
+      '<span style="color:var(--text3)">ทั้งปี</span>' +
+      '<span style="color:var(--text2);font-weight:700;">'+total+'</span>' +
+      '<span style="color:var(--text3)">วัน</span>' +
+    '</span>' +
+    '</span>';
 }
 
 // HELPERS
