@@ -776,12 +776,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
     <button class="date-nav" onclick="stepDate(1)">&#8250;</button>
     <!-- Calendar overlay -->
     <div id="calOverlay" class="cal-overlay" onclick="if(event.target===this)closeCalendar()">
-      <div id="calPopup" class="cal-popup" style="display:none;">
-        <div class="cal-footer">
-          <button class="cal-footer-btn" onclick="closeCalendar()">รีเซ็ต</button>
-          <button class="cal-footer-btn" style="font-weight:700;" onclick="closeCalendar()">เสร็จสิ้น</button>
-        </div>
-      </div>
+      <div id="calPopup" class="cal-popup" style="display:none;"></div>
     </div>
     <span class="date-info" id="dateInfo"></span>
   </div>
@@ -1309,15 +1304,12 @@ function renderCalDays(pop){
   }
   h+='</div>';
 
-  // On mobile insert before footer; on desktop replace everything
-  var footer=pop.querySelector('.cal-footer');
-  if(footer){
-    var tmp=document.createElement('div');
-    tmp.innerHTML=h;
-    while(tmp.firstChild) pop.insertBefore(tmp.firstChild, footer);
-  } else {
-    pop.innerHTML=h;
-  }
+  // Add iOS-style footer on mobile
+  h+='<div class="cal-footer">';
+  h+='<button class="cal-footer-btn" onclick="closeCalendar()">ปิด</button>';
+  h+='<button class="cal-footer-btn" style="font-weight:700;" onclick="closeCalendar()">เสร็จสิ้น</button>';
+  h+='</div>';
+  pop.innerHTML=h;
   var grid=document.getElementById('calDaysGrid');
   if(grid){
     grid.addEventListener('click',function(e){
