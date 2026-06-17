@@ -352,7 +352,20 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
 .sf-btn{padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text2);transition:all .15s;}
 .sf-btn:hover,.sf-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
 
-/* ── FORECAST EDIT BUTTON & MODAL ── */
+/* ── SPLIT TAB (side by side) ── */
+.split-tab-btn{
+  width:100%;padding:10px 16px;font-size:12px;font-weight:600;
+  border:none;background:none;cursor:pointer;color:var(--text3);
+  border-bottom:2px solid transparent;transition:all .2s;
+  display:flex;align-items:center;gap:6px;
+}
+.split-tab-btn:hover{color:var(--text2);background:rgba(255,255,255,.03);}
+.split-tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent2);}
+@media(max-width:900px){
+  .split-tab-btn{font-size:11px;padding:8px 10px;}
+}
+
+
 .fc-edit-btn{
   display:flex;align-items:center;gap:6px;
   padding:6px 12px;border-radius:var(--r-sm);font-size:11px;font-weight:600;
@@ -597,22 +610,55 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
 
 <!-- FORECAST EDIT MODAL -->
 <div class="status-modal-overlay" id="forecastModalOverlay" onclick="if(event.target===this)closeForecastModal()">
+
+<!-- DAILY MONTH VIEW MODAL -->
+<div class="status-modal-overlay" id="dailyModalOverlay" onclick="if(event.target===this)closeDailyModal()">
+  <div class="status-modal" style="max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+      <h3 id="dailyModalTitle">-</h3>
+      <button class="btn-cancel" style="padding:4px 10px;font-size:12px;" onclick="closeDailyModal()">✕</button>
+    </div>
+    <div class="modal-sub" id="dailyModalSub">คลิกวันที่เพื่อกรอกหรือแก้ไขข้อมูล</div>
+    <div id="dailyMonthGrid" style="margin-bottom:8px;"></div>
+    <div style="background:var(--bg3);border-radius:var(--r-sm);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:11px;color:var(--text3);">ยอดรวมเดือนนี้</span>
+      <span id="dailySumDisplay" style="font-size:14px;font-weight:700;color:var(--cyan);">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- DAILY DAY INPUT MODAL -->
+<div class="status-modal-overlay" id="dayInputOverlay" onclick="if(event.target===this)closeDayInput()">
+  <div class="status-modal" style="max-width:300px;">
+    <h3 id="dayInputTitle">-</h3>
+    <div class="modal-sub">กรอกปริมาณ (m³) สำหรับวันนี้</div>
+    <label>ปริมาณ (m³)</label>
+    <input type="number" id="dayInputValue" placeholder="0" style="font-size:18px;text-align:center;" onkeydown="if(event.key==='Enter')submitDayInput()"/>
+    <label>รหัสยืนยัน</label>
+    <input type="password" id="dayInputPasscode" placeholder="กรอกรหัสยืนยัน" onkeydown="if(event.key==='Enter')submitDayInput()"/>
+    <div class="modal-error" id="dayInputError">รหัสยืนยันไม่ถูกต้อง</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeDayInput()">ยกเลิก</button>
+      <button class="btn-save" onclick="submitDayInput()">บันทึก</button>
+    </div>
+  </div>
+</div>
   <div class="status-modal" style="max-width:480px;">
     <h3 id="fcModalTitle">-</h3>
-    <div class="modal-sub">กรอกผลจริงรายเดือน (m³) — เว้นว่างหากยังไม่มีข้อมูล</div>
+    <div class="modal-sub">กรอกผลจริงรายเดือน (m³) — คลิกชื่อเดือนเพื่อกรอกรายวัน</div>
     <div class="fc-modal-grid">
-      <div><label>ม.ค.</label><input type="number" id="fcModalInput0"/></div>
-      <div><label>ก.พ.</label><input type="number" id="fcModalInput1"/></div>
-      <div><label>มี.ค.</label><input type="number" id="fcModalInput2"/></div>
-      <div><label>เม.ย.</label><input type="number" id="fcModalInput3"/></div>
-      <div><label>พ.ค.</label><input type="number" id="fcModalInput4"/></div>
-      <div><label>มิ.ย.</label><input type="number" id="fcModalInput5"/></div>
-      <div><label>ก.ค.</label><input type="number" id="fcModalInput6"/></div>
-      <div><label>ส.ค.</label><input type="number" id="fcModalInput7"/></div>
-      <div><label>ก.ย.</label><input type="number" id="fcModalInput8"/></div>
-      <div><label>ต.ค.</label><input type="number" id="fcModalInput9"/></div>
-      <div><label>พ.ย.</label><input type="number" id="fcModalInput10"/></div>
-      <div><label>ธ.ค.</label><input type="number" id="fcModalInput11"/></div>
+      <div><label onclick="fcOpenDaily(0)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">ม.ค.</label><input type="number" id="fcModalInput0"/></div>
+      <div><label onclick="fcOpenDaily(1)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">ก.พ.</label><input type="number" id="fcModalInput1"/></div>
+      <div><label onclick="fcOpenDaily(2)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">มี.ค.</label><input type="number" id="fcModalInput2"/></div>
+      <div><label onclick="fcOpenDaily(3)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">เม.ย.</label><input type="number" id="fcModalInput3"/></div>
+      <div><label onclick="fcOpenDaily(4)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">พ.ค.</label><input type="number" id="fcModalInput4"/></div>
+      <div><label onclick="fcOpenDaily(5)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">มิ.ย.</label><input type="number" id="fcModalInput5"/></div>
+      <div><label onclick="fcOpenDaily(6)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">ก.ค.</label><input type="number" id="fcModalInput6"/></div>
+      <div><label onclick="fcOpenDaily(7)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">ส.ค.</label><input type="number" id="fcModalInput7"/></div>
+      <div><label onclick="fcOpenDaily(8)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">ก.ย.</label><input type="number" id="fcModalInput8"/></div>
+      <div><label onclick="fcOpenDaily(9)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">ต.ค.</label><input type="number" id="fcModalInput9"/></div>
+      <div><label onclick="fcOpenDaily(10)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">พ.ย.</label><input type="number" id="fcModalInput10"/></div>
+      <div><label onclick="fcOpenDaily(11)" style="cursor:pointer;color:var(--accent2);font-size:13px;font-weight:700;padding:4px 0;display:block;">ธ.ค.</label><input type="number" id="fcModalInput11"/></div>
     </div>
     <label>รหัสยืนยันการแก้ไขข้อมูล</label>
     <input type="password" id="fcModalPasscode" placeholder="กรอกรหัสยืนยัน" onkeydown="if(event.key==='Enter')submitForecastEdit()"/>
@@ -781,24 +827,27 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
     <span class="date-info" id="dateInfo"></span>
   </div>
 
-  <!-- Water Tabs -->
-  <div class="wtab-bar" style="margin:0 -22px;padding:10px 22px 0;">
-    <button class="wtab-btn active" id="wtab-wwtp-btn" onclick="switchWTab('wwtp',this)">
-      <span>💧</span> ระบบบำบัดน้ำเสีย WWTP-4 ACC1
-    </button>
-    <button class="wtab-btn" id="wtab-wrtp-btn" onclick="switchWTab('wrtp',this)">
-      <span>&#9851;</span> ระบบผลิตน้ำหมุนเวียน WRTP-3 ACC1
-    </button>
-    <button class="wtab-btn" id="wtab-overview-btn" onclick="switchWTab('overview',this)">
-      <span>📊</span> ภาพรวม 30 วัน
-    </button>
-
+  <!-- Water: 2 tabs side by side, show one at a time -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0 -22px;border-bottom:1px solid var(--border);">
+    <div style="border-right:1px solid var(--border);">
+      <button class="split-tab-btn active" id="stab-wwtp" onclick="switchSplitTab('wwtp',this)">
+        <span>💧</span> WWTP-4 ACC1
+      </button>
+    </div>
+    <div>
+      <button class="split-tab-btn" id="stab-wrtp" onclick="switchSplitTab('wrtp',this)">
+        <span>&#9851;</span> WRTP-3 ACC1
+      </button>
+    </div>
   </div>
 
-  <div style="padding-top:16px;">
-    <div id="wtab-wwtp" class="wtab-pane active"><div id="wwtp-body"></div></div>
-    <div id="wtab-wrtp" class="wtab-pane"><div id="wrtp-body"></div></div>
-    <div id="wtab-overview" class="wtab-pane"><div id="overview-body"></div></div>
+  <div style="padding-top:14px;">
+    <div id="wwtp-panel" class="split-panel">
+      <div id="wwtp-body"></div>
+    </div>
+    <div id="wrtp-panel" class="split-panel" style="display:none;">
+      <div id="wrtp-body"></div>
+    </div>
   </div>
 
 </div>
@@ -1200,11 +1249,13 @@ function handleUpload(t){alert('บันทึกข้อมูล '+t+' เ�
 
 // WATER TABS
 function switchWTab(tab,btn){
-  document.querySelectorAll('.wtab-pane').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.wtab-btn').forEach(function(b){b.classList.remove('active');});
-  document.getElementById('wtab-'+tab).classList.add('active');
+  // no-op kept for compatibility
+}
+function switchSplitTab(side, btn){
+  document.querySelectorAll('.split-tab-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  if(tab==='overview'){renderOverview();}
+  document.getElementById('wwtp-panel').style.display = side==='wwtp' ? '' : 'none';
+  document.getElementById('wrtp-panel').style.display = side==='wrtp' ? '' : 'none';
 }
 
 // DATE PICKER
@@ -1432,16 +1483,17 @@ function renderWwtp(date){
   var pwrExc=d.pwr_sbr?Math.round((d.pwr_sbr/0.140-1)*100):0;
   var h='';
 
-  // KPI Cards row
-  h+='<div class="stat-grid">';
-  h+='<div class="stat-card"><div class="stat-label">ปริมาณน้ำรับเข้า</div><div class="stat-value" style="color:var(--cyan)">'+fmtP(d.inf_total)+'</div><div class="stat-sub">m³/วัน</div>'+(d.cap_pct>100?'<span class="stat-badge badge-warn">⚠ เกินกำลัง</span>':'<span class="stat-badge badge-pass">✓ ปกติ</span>')+'</div>';
-  h+='<div class="stat-card"><div class="stat-label">% Capacity ใช้งาน</div><div class="stat-value" style="color:'+capC+'">'+fmtP(d.cap_pct,1)+'%</div><div class="stat-sub">จาก 10,000 m³/d</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">น้ำ Reuse</div><div class="stat-value" style="color:var(--green)">'+fmtP(d.reuse)+'</div><div class="stat-sub">m³/วัน</div>'+(d.reuse&&d.inf_total?'<span class="stat-badge badge-pass">'+Math.round(d.reuse/d.inf_total*100)+'% ของ Inf.</span>':'')+'</div>';
-  h+='<div class="stat-card"><div class="stat-label">Effluent COD</div><div class="stat-value" style="color:'+(lte(d.eff_cod,120)?'var(--green)':'var(--red)')+'">'+fmtP(d.eff_cod)+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤120)</div>'+passBadge(d.eff_cod!==null?lte(d.eff_cod,120):null)+'</div>';
-  h+='<div class="stat-card"><div class="stat-label">Effluent SS</div><div class="stat-value" style="color:'+(lte(d.eff_ss,50)?'var(--green)':'var(--red)')+'">'+fmtP(d.eff_ss)+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤50)</div>'+passBadge(d.eff_ss!==null?lte(d.eff_ss,50):null)+'</div>';
-  h+='</div>';
-
-  // Power + Chemicals
+  // KPI Cards row — inject into forecast placeholder if exists, else prepend
+  var dailyKpiHtml=
+    '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">'+
+    '<div class="stat-card"><div class="stat-label">ปริมาณน้ำรับเข้า</div><div class="stat-value" style="color:var(--cyan);font-size:20px">'+fmtP(d.inf_total)+'</div><div class="stat-sub">m³/วัน</div>'+(d.cap_pct>100?'<span class="stat-badge badge-warn">⚠ เกินกำลัง</span>':'<span class="stat-badge badge-pass">✓ ปกติ</span>')+'</div>'+
+    '<div class="stat-card"><div class="stat-label">% Capacity ใช้งาน</div><div class="stat-value" style="color:'+(d.cap_pct>100?'var(--yellow)':'var(--green)')+';font-size:20px">'+fmtP(d.cap_pct,1)+'%</div><div class="stat-sub">จาก 10,000 m³/d</div></div>'+
+    '<div class="stat-card"><div class="stat-label">น้ำ Reuse</div><div class="stat-value" style="color:var(--green);font-size:20px">'+fmtP(d.reuse)+'</div><div class="stat-sub">m³/วัน</div>'+(d.reuse&&d.inf_total?'<span class="stat-badge badge-pass">'+Math.round(d.reuse/d.inf_total*100)+'% ของ Inf.</span>':'')+'</div>'+
+    '<div class="stat-card"><div class="stat-label">Effluent COD</div><div class="stat-value" style="color:'+(lte(d.eff_cod,120)?'var(--green)':'var(--red)')+';font-size:20px">'+fmtP(d.eff_cod)+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤120)</div>'+passBadge(d.eff_cod!==null?lte(d.eff_cod,120):null)+'</div>'+
+    '<div class="stat-card"><div class="stat-label">Effluent SS</div><div class="stat-value" style="color:'+(lte(d.eff_ss,50)?'var(--green)':'var(--red)')+';font-size:20px">'+fmtP(d.eff_ss)+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤50)</div>'+passBadge(d.eff_ss!==null?lte(d.eff_ss,50):null)+'</div>'+
+    '</div>';
+  var dailyEl=document.getElementById('wwtp-daily-kpi');
+  if(dailyEl){ dailyEl.innerHTML=dailyKpiHtml; }
     h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--yellow)"></span>พลังงาน & สารเคมี</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">';
   h+='<div style="background:var(--bg3);border-radius:var(--r-sm);padding:10px 12px;'+(pwrOk?'':'border:1px solid rgba(239,68,68,.3);')+'"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">Power SBR (KPI ≤ 0.140)</div><div style="font-size:20px;font-weight:700;color:'+(pwrOk?'var(--green)':'var(--red)')+'">'+fmtP(d.pwr_sbr,3)+'</div><div style="font-size:9px;color:var(--text3)">kWh/m³</div>'+(d.pwr_sbr?(!pwrOk?'<div style="font-size:9px;color:var(--red);margin-top:2px">เกิน KPI +'+pwrExc+'%</div>':'<div style="font-size:9px;color:var(--green);margin-top:2px">✓ ผ่าน KPI</div>'):'')+'</div>';
@@ -1494,37 +1546,7 @@ function renderWrtp(date){
   h+='<div class="stat-card"><div class="stat-label">Energy</div><div class="stat-value" style="color:var(--yellow)">'+fmtP(d.kwh_m3,3)+'</div><div class="stat-sub">kWh/m³ Reclaim</div></div>';
   h+='</div>';
 
-  // Process Flow
-  h+='<div class="card" style="margin-bottom:13px;"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>กระบวนการผลิต — Mass Balance</div>';
-  h+='<div class="proc-flow">';
-  h+=procNode('Raw Water','Feed','—','var(--yellow)','rgba(245,158,11,.4)','Turb '+fmtP(d.raw_turb,1)+' NTU');
-  h+='<div class="proc-arr">→</div>';
-  h+=procNode('UF Feed',fmtP(d.uf_feed),'m³/d','var(--accent2)','rgba(99,102,241,.4)','TDS '+fmtP(d.raw_tds));
-  h+='<div class="proc-arr">→</div>';
-  h+=procNode('UF Product',fmtP(d.uf_prod),'m³/d','var(--accent2)','rgba(99,102,241,.4)','R '+(ufR||'—')+'%');
-  h+='<div class="proc-arr">→</div>';
-  h+=procNode('RO Feed',fmtP(d.ro_feed),'m³/d','var(--blue)','rgba(59,130,246,.4)','Turb '+fmtP(d.uf_turb,2));
-  h+='<div class="proc-arr">→</div>';
-  h+=procNode('RO Product',fmtP(d.ro_prod),'m³/d','var(--blue)','rgba(59,130,246,.4)','R '+(roR||'—')+'%');
-  h+='<div class="proc-arr">→</div>';
-  h+=procNode('Reclaim',fmtP(d.reclaim),'m³/d','var(--green)','rgba(16,185,129,.4)','Cl '+fmtP(d.rec_cl,2)+' mg/L');
-  h+='</div>';
-  // Recovery bars
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;">';
-  h+='<div><div class="prog-lbl"><span style="font-size:10px">UF Recovery</span><span style="font-weight:700;color:var(--accent2)">'+(ufR||'—')+'%</span></div>'+pBar(ufR,'var(--accent2)')+'</div>';
-  h+='<div><div class="prog-lbl"><span style="font-size:10px">RO Recovery</span><span style="font-weight:700;color:var(--blue)">'+(roR||'—')+'%</span></div>'+pBar(roR,'var(--blue)')+'</div>';
-  h+='<div><div class="prog-lbl"><span style="font-size:10px">Overall Reclaim</span><span style="font-weight:700;color:var(--green)">'+(oR||'—')+'%</span></div>'+pBar(oR,'var(--green)')+'</div>';
-  h+='</div></div>';
-
   // Charts
-  h+='<div class="grid-2" style="margin-bottom:13px;">';
-  h+='';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--cyan)"></span>Turbidity: Raw Water vs Reclaim (NTU)</div><div class="chart-wrap" style="height:180px;"><canvas id="wrtpTurbChart"></canvas></div></div>';
-  h+='</div>';
-  h+='<div class="grid-2" style="margin-bottom:13px;">';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--green)"></span>Overall Recovery % & Energy (kWh/m³)</div><div class="chart-wrap" style="height:180px;"><canvas id="wrtpRecChart"></canvas></div></div>';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--blue)"></span>Reclaim TDS 30 วัน (mg/L)</div><div class="chart-wrap" style="height:180px;"><canvas id="wrtpTdsChart"></canvas></div></div>';
-  h+='</div>';
   h+='<div class="grid-2" style="margin-bottom:13px;">';
   h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>UF Feed vs RO Feed 30 วัน (m³/d)</div><div class="chart-wrap" style="height:200px;"><canvas id="wrtpFeedChart"></canvas></div></div>';
   h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--cyan)"></span>UF Product vs RO Product 30 วัน (m³/d)</div><div class="chart-wrap" style="height:200px;"><canvas id="wrtpProdChart"></canvas></div></div>';
@@ -1548,30 +1570,6 @@ function renderWrtp(date){
   setTimeout(function(){
     var opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TC,font:{size:9},maxTicksLimit:10},grid:{color:GC},border:{display:false}},y:{ticks:{color:TC,font:{size:9}},grid:{color:GC},border:{display:false}}}};
 
-    mkChart('wrtpTurbChart',{type:'line',data:{labels:TREND.rlabels,datasets:[
-      {label:'Raw Turbidity',data:TREND.r_raw_turb,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.07)',fill:true,tension:0.3,pointRadius:2,borderWidth:2,yAxisID:'y'},
-      {label:'Reclaim Turb',data:TREND.r_rec_turb,borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,0.07)',fill:true,tension:0.3,pointRadius:2,borderWidth:2,yAxisID:'y1'},
-      {label:'Limit 4 NTU',data:Array(TREND.rlabels.length).fill(4),borderColor:'rgba(239,68,68,0.4)',borderDash:[4,3],borderWidth:1.5,pointRadius:0,fill:false,yAxisID:'y1'}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-      x:{ticks:{color:TC,font:{size:9},maxTicksLimit:10},grid:{color:GC},border:{display:false}},
-      y:{ticks:{color:'#f59e0b',font:{size:9}},grid:{color:GC},border:{display:false},position:'left',title:{display:true,text:'Raw (NTU)',color:TC,font:{size:8}}},
-      y1:{ticks:{color:'#06b6d4',font:{size:9}},grid:{display:false},border:{display:false},position:'right',title:{display:true,text:'Reclaim (NTU)',color:TC,font:{size:8}}}
-    }}});
-
-    mkChart('wrtpRecChart',{type:'line',data:{labels:TREND.rlabels,datasets:[
-      {label:'Overall %',data:TREND.r_overall,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.07)',fill:true,tension:0.3,pointRadius:2,borderWidth:2,yAxisID:'y'},
-      {label:'kWh/m³',data:TREND.r_kwh,borderColor:'#f59e0b',fill:false,tension:0.3,pointRadius:2,borderWidth:1.5,borderDash:[3,2],yAxisID:'y1'}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-      x:{ticks:{color:TC,font:{size:9},maxTicksLimit:10},grid:{color:GC},border:{display:false}},
-      y:{ticks:{color:'#10b981',font:{size:9}},grid:{color:GC},border:{display:false},position:'left'},
-      y1:{ticks:{color:'#f59e0b',font:{size:9}},grid:{display:false},border:{display:false},position:'right'}
-    }}});
-
-    mkChart('wrtpTdsChart',{type:'line',data:{labels:TREND.rlabels,datasets:[
-      {label:'Reclaim TDS',data:TREND.r_rec_tds,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.07)',fill:true,tension:0.3,pointRadius:2,borderWidth:2},
-      {label:'Limit 500',data:Array(TREND.rlabels.length).fill(500),borderColor:'rgba(239,68,68,0.4)',borderDash:[4,3],borderWidth:1.5,pointRadius:0,fill:false}
-    ]},options:Object.assign({},opts)});
-
     // UF & RO Feed vs Product grouped bar chart
     var grpOpts={responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:true,position:'top',labels:{color:TC,font:{size:10},boxWidth:10,padding:8}}},
@@ -1593,57 +1591,81 @@ function renderWrtp(date){
 // ══ OVERVIEW (30 DAY SUMMARY) ══
 var overviewBuilt=false;
 function renderOverview(){
-  if(overviewBuilt)return; overviewBuilt=true;
+  overviewBuilt=true; // allow re-render on tab switch
   var el=document.getElementById('overview-body');
-  var wa=TREND.w_avg, ra=TREND.r_avg;
-  var h='';
 
-  h+='<div style="font-size:12px;color:var(--text3);margin-bottom:14px;">ค่าเฉลี่ย 30 วันล่าสุด — WWTP-4 ACC1 & WRTP-3 ACC1</div>';
+  // Get current selected month from currentDate
+  var parts=currentDate.split('-');
+  var selYear=+parts[0], selMonth=+parts[1];
+
+  // Collect all dates in selected month from both datasets
+  var TH_MO=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var moLabel=TH_MO[selMonth]+' '+(selYear+543);
+  var moPrefix=selYear+'-'+(selMonth<10?'0':'')+selMonth+'-';
+
+  // WWTP month data
+  var wDates=Object.keys(WWTP_DATA).filter(function(d){return d.startsWith(moPrefix)&&WWTP_DATA[d].inf_total>0;}).sort();
+  // WRTP month data
+  var rDates=Object.keys(WRTP_DATA).filter(function(d){return d.startsWith(moPrefix)&&WRTP_DATA[d].uf_feed>100;}).sort();
+
+  function avg(arr,key){ var v=arr.map(function(d){return WWTP_DATA[d]?WWTP_DATA[d][key]:null;}).filter(function(x){return x!==null&&x!==undefined;}); return v.length?Math.round(v.reduce(function(a,b){return a+b;},0)/v.length*10)/10:null; }
+  function avgR(arr,key){ var v=arr.map(function(d){return WRTP_DATA[d]?WRTP_DATA[d][key]:null;}).filter(function(x){return x!==null&&x!==undefined;}); return v.length?Math.round(v.reduce(function(a,b){return a+b;},0)/v.length*10)/10:null; }
+  function fv(v,dec){ return (v===null||v===undefined)?'—':(dec?v.toFixed(dec):v.toLocaleString('th-TH')); }
+
+  var waInf=avg(wDates,'inf_total'), waCap=avg(wDates,'cap_pct'), waEffCod=avg(wDates,'eff_cod'), waEffSs=avg(wDates,'eff_ss'), waPwr=avg(wDates,'pwr_sbr'), waSludge=avg(wDates,'sludge');
+  var raFeed=avgR(rDates,'uf_feed'), raReclaim=avgR(rDates,'reclaim'), raRec=rDates.length?Math.round(rDates.reduce(function(s,d){return s+(WRTP_DATA[d].uf_feed>0?WRTP_DATA[d].reclaim/WRTP_DATA[d].uf_feed*100:0);},0)/rDates.length*10)/10:null, raTds=avgR(rDates,'rec_tds');
+
+  var wLabels=wDates.map(function(d){var p=d.split('-');return +p[2]+'/'+selMonth;});
+  var rLabels=rDates.map(function(d){var p=d.split('-');return +p[2]+'/'+selMonth;});
+
+  var h='';
+  h+='<div style="font-size:12px;color:var(--text3);margin-bottom:14px;">ค่าเฉลี่ยเดือน <strong style="color:var(--text)">'+moLabel+'</strong> ('+wDates.length+' วันข้อมูล) — WWTP-4 ACC1 & WRTP-3 ACC1</div>';
 
   // WWTP summary
   h+='<div style="font-size:13px;font-weight:600;color:var(--cyan);margin-bottom:10px;display:flex;align-items:center;gap:7px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);display:inline-block;"></span>WWTP-4 ACC1 — ระบบบำบัดน้ำเสีย</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">';
-  h+='<div class="stat-card"><div class="stat-label">Avg Influent</div><div class="stat-value" style="color:var(--cyan);font-size:20px">'+wa.inf.toLocaleString('th-TH')+'</div><div class="stat-sub">m³/d</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Avg Capacity</div><div class="stat-value" style="color:'+(wa.cap<=100?'var(--green)':'var(--yellow)')+';font-size:20px">'+wa.cap+'%</div><div class="stat-sub">จาก 10,000 m³</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Avg Eff. COD</div><div class="stat-value" style="color:'+(wa.eff_cod<=120?'var(--green)':'var(--red)')+';font-size:20px">'+wa.eff_cod+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤120)</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Avg Power SBR</div><div class="stat-value" style="color:'+(wa.pwr<=0.14?'var(--green)':'var(--red)')+';font-size:20px">'+wa.pwr+'</div><div class="stat-sub">kWh/m³ (KPI 0.140)</div></div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">';
+  h+='<div class="stat-card"><div class="stat-label">Avg Influent</div><div class="stat-value" style="color:var(--cyan);font-size:20px">'+fv(waInf)+'</div><div class="stat-sub">m³/d</div></div>';
+  h+='<div class="stat-card"><div class="stat-label">Avg Capacity</div><div class="stat-value" style="color:'+(waCap&&waCap<=100?'var(--green)':'var(--yellow)')+';font-size:20px">'+fv(waCap,1)+'%</div><div class="stat-sub">จาก 10,000 m³</div></div>';
+  h+='<div class="stat-card"><div class="stat-label">Avg Eff. COD</div><div class="stat-value" style="color:'+(waEffCod&&waEffCod<=120?'var(--green)':'var(--red)')+';font-size:20px">'+fv(waEffCod,1)+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤120)</div></div>';
+  h+='<div class="stat-card"><div class="stat-label">Avg Power SBR</div><div class="stat-value" style="color:'+(waPwr&&waPwr<=0.14?'var(--green)':'var(--red)')+';font-size:20px">'+fv(waPwr,3)+'</div><div class="stat-sub">kWh/m³ (KPI 0.140)</div></div>';
   h+='</div>';
 
-  // WWTP trend charts
-  h+='<div class="grid-2" style="margin-bottom:16px;">';
-  h+='';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--yellow)"></span>Effluent COD & SS Trend</div><div class="chart-wrap" style="height:160px;"><canvas id="ov_w_qual"></canvas></div></div>';
+  h+='<div class="grid-2" style="margin-bottom:14px;">';
+  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--yellow)"></span>Effluent COD & SS — เดือน'+moLabel+'</div><div class="chart-wrap" style="height:160px;"><canvas id="ov_w_qual"></canvas></div></div>';
+  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--red)"></span>Power SBR vs KPI 0.140</div><div class="chart-wrap" style="height:160px;"><canvas id="ov_pwr"></canvas></div></div>';
   h+='</div>';
 
   // WRTP summary
   h+='<div style="font-size:13px;font-weight:600;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:7px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent2);display:inline-block;"></span>WRTP-3 ACC1 — ระบบผลิตน้ำหมุนเวียน</div>';
-  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">';
-  h+='<div class="stat-card"><div class="stat-label">Avg UF Feed</div><div class="stat-value" style="color:var(--accent2);font-size:20px">'+ra.uf_feed.toLocaleString('th-TH')+'</div><div class="stat-sub">m³/d</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Avg Reclaim</div><div class="stat-value" style="color:var(--green);font-size:20px">'+ra.reclaim.toLocaleString('th-TH')+'</div><div class="stat-sub">m³/d</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Overall Recovery</div><div class="stat-value" style="color:var(--green);font-size:20px">'+ra.overall+'%</div><div class="stat-sub">UF Feed → Reclaim</div></div>';
-  h+='<div class="stat-card"><div class="stat-label">Avg Reclaim TDS</div><div class="stat-value" style="color:'+(ra.rec_tds<=500?'var(--green)':'var(--red)')+';font-size:20px">'+ra.rec_tds+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤500)</div></div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">';
+  h+='<div class="stat-card"><div class="stat-label">Avg UF Feed</div><div class="stat-value" style="color:var(--accent2);font-size:20px">'+fv(raFeed)+'</div><div class="stat-sub">m³/d</div></div>';
+  h+='<div class="stat-card"><div class="stat-label">Avg Reclaim</div><div class="stat-value" style="color:var(--green);font-size:20px">'+fv(raReclaim)+'</div><div class="stat-sub">m³/d</div></div>';
+  h+='<div class="stat-card"><div class="stat-label">Overall Recovery</div><div class="stat-value" style="color:var(--green);font-size:20px">'+fv(raRec,1)+'%</div><div class="stat-sub">UF Feed → Reclaim</div></div>';
+  h+='<div class="stat-card"><div class="stat-label">Avg Reclaim TDS</div><div class="stat-value" style="color:'+(raTds&&raTds<=500?'var(--green)':'var(--red)')+';font-size:20px">'+fv(raTds,1)+'</div><div class="stat-sub">mg/L (เกณฑ์ ≤500)</div></div>';
   h+='</div>';
 
-  h+='<div class="grid-2" style="margin-bottom:16px;">';
-
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--green)"></span>Recovery % & Energy Trend</div><div class="chart-wrap" style="height:160px;"><canvas id="ov_r_rec"></canvas></div></div>';
-  h+='</div>';
-
-  // Combined sludge + energy
-  h+='<div class="grid-2">';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--yellow)"></span>ตะกอน Dry Sludge 30 วัน (kg/d)</div><div class="chart-wrap" style="height:150px;"><canvas id="ov_sludge"></canvas></div></div>';
-  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--red)"></span>Power SBR vs KPI 0.140 (kWh/m³)</div><div class="chart-wrap" style="height:150px;"><canvas id="ov_pwr"></canvas></div></div>';
+  h+='<div class="grid-2" style="margin-bottom:14px;">';
+  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--green)"></span>Recovery % & Energy — เดือน'+moLabel+'</div><div class="chart-wrap" style="height:160px;"><canvas id="ov_r_rec"></canvas></div></div>';
+  h+='<div class="card"><div class="sec-title"><span class="sec-dot" style="background:var(--yellow)"></span>Dry Sludge — เดือน'+moLabel+' (kg/d)</div><div class="chart-wrap" style="height:160px;"><canvas id="ov_sludge"></canvas></div></div>';
   h+='</div>';
 
   el.innerHTML=h;
+
   setTimeout(function(){
-    var bOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TC,font:{size:9},maxTicksLimit:8},grid:{color:GC},border:{display:false}},y:{ticks:{color:TC,font:{size:9}},grid:{color:GC},border:{display:false}}}};
+    var bOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TC,font:{size:9},maxTicksLimit:15},grid:{color:GC},border:{display:false}},y:{ticks:{color:TC,font:{size:9}},grid:{color:GC},border:{display:false}}}};
     var lOpts=JSON.parse(JSON.stringify(bOpts));
 
-    mkChart('ov_w_qual',{type:'line',data:{labels:TREND.wlabels,datasets:[{label:'COD',data:TREND.w_eff_cod,borderColor:'#f59e0b',tension:0.3,pointRadius:1.5,borderWidth:2,fill:false},{label:'SS',data:TREND.w_eff_ss,borderColor:'#8b5cf6',tension:0.3,pointRadius:1.5,borderWidth:2,fill:false}]},options:lOpts});
-    mkChart('ov_r_rec',{type:'line',data:{labels:TREND.rlabels,datasets:[{label:'Overall %',data:TREND.r_overall,borderColor:'#10b981',tension:0.3,pointRadius:1.5,borderWidth:2,fill:false,yAxisID:'y'},{label:'kWh/m³',data:TREND.r_kwh,borderColor:'#f59e0b',tension:0.3,pointRadius:1.5,borderWidth:1.5,borderDash:[3,2],fill:false,yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TC,font:{size:9},maxTicksLimit:8},grid:{color:GC},border:{display:false}},y:{ticks:{color:'#10b981',font:{size:9}},grid:{color:GC},border:{display:false},position:'left'},y1:{ticks:{color:'#f59e0b',font:{size:9}},grid:{display:false},border:{display:false},position:'right'}}}});
-    mkChart('ov_sludge',{type:'bar',data:{labels:TREND.wlabels,datasets:[{label:'Sludge kg',data:TREND.w_sludge,backgroundColor:'rgba(245,158,11,0.6)',borderRadius:2}]},options:bOpts});
-    mkChart('ov_pwr',{type:'line',data:{labels:TREND.wlabels,datasets:[{label:'Power SBR',data:TREND.w_pwr,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.06)',fill:true,tension:0.3,pointRadius:2,borderWidth:2},{label:'KPI',data:Array(TREND.wlabels.length).fill(0.140),borderColor:'rgba(16,185,129,0.6)',borderDash:[4,3],borderWidth:1.5,pointRadius:0,fill:false}]},options:lOpts});
+    var wCod=wDates.map(function(d){return WWTP_DATA[d].eff_cod;});
+    var wSs=wDates.map(function(d){return WWTP_DATA[d].eff_ss;});
+    var wPwr=wDates.map(function(d){return WWTP_DATA[d].pwr_sbr;});
+    var wSlg=wDates.map(function(d){return WWTP_DATA[d].sludge;});
+    var rOverall=rDates.map(function(d){return WRTP_DATA[d].uf_feed>0?Math.round(WRTP_DATA[d].reclaim/WRTP_DATA[d].uf_feed*1000)/10:null;});
+    var rKwh=rDates.map(function(d){return WRTP_DATA[d].kwh_m3;});
+
+    mkChart('ov_w_qual',{type:'line',data:{labels:wLabels,datasets:[{label:'COD',data:wCod,borderColor:'#f59e0b',tension:0.3,pointRadius:2,borderWidth:2,fill:false},{label:'SS',data:wSs,borderColor:'#8b5cf6',tension:0.3,pointRadius:2,borderWidth:2,fill:false}]},options:lOpts});
+    mkChart('ov_pwr',{type:'line',data:{labels:wLabels,datasets:[{label:'Power SBR',data:wPwr,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.06)',fill:true,tension:0.3,pointRadius:2,borderWidth:2},{label:'KPI 0.140',data:Array(wLabels.length).fill(0.140),borderColor:'rgba(16,185,129,0.6)',borderDash:[4,3],borderWidth:1.5,pointRadius:0,fill:false}]},options:lOpts});
+    mkChart('ov_r_rec',{type:'line',data:{labels:rLabels,datasets:[{label:'Overall %',data:rOverall,borderColor:'#10b981',tension:0.3,pointRadius:2,borderWidth:2,fill:false,yAxisID:'y'},{label:'kWh/m³',data:rKwh,borderColor:'#f59e0b',tension:0.3,pointRadius:2,borderWidth:1.5,borderDash:[3,2],fill:false,yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:TC,font:{size:9},maxTicksLimit:15},grid:{color:GC},border:{display:false}},y:{ticks:{color:'#10b981',font:{size:9}},grid:{color:GC},border:{display:false},position:'left'},y1:{ticks:{color:'#f59e0b',font:{size:9}},grid:{display:false},border:{display:false},position:'right'}}}});
+    mkChart('ov_sludge',{type:'bar',data:{labels:wLabels,datasets:[{label:'Sludge kg',data:wSlg,backgroundColor:'rgba(245,158,11,0.6)',borderRadius:2}]},options:bOpts});
   },50);
 }
 
@@ -1653,21 +1675,21 @@ var DAYS_2026=[31,28,31,30,31,30,31,31,30,31,30,31];
 var FORECAST_STORAGE_KEY='awp_forecast_actual_v1';
 var fcModalSite=null;
 
+var FORECAST_DAILY={wwtp:{},wrtp:{}};
+var FORECAST_DAILY_KEY='awp_forecast_daily_v1';
+
 function loadForecastOverrides(){
   try{
     var raw=localStorage.getItem(FORECAST_STORAGE_KEY);
-    if(!raw) return;
-    var ov=JSON.parse(raw);
-    if(ov.wwtp) FORECAST.wwtp.actual_monthly=ov.wwtp;
-    if(ov.wrtp) FORECAST.wrtp.actual_monthly=ov.wrtp;
+    if(raw){ var ov=JSON.parse(raw); if(ov.wwtp) FORECAST.wwtp.actual_monthly=ov.wwtp; if(ov.wrtp) FORECAST.wrtp.actual_monthly=ov.wrtp; }
+    var raw2=localStorage.getItem(FORECAST_DAILY_KEY);
+    if(raw2){ FORECAST_DAILY=JSON.parse(raw2); }
   }catch(err){}
 }
 function saveForecastOverrides(){
   try{
-    localStorage.setItem(FORECAST_STORAGE_KEY, JSON.stringify({
-      wwtp: FORECAST.wwtp.actual_monthly,
-      wrtp: FORECAST.wrtp.actual_monthly
-    }));
+    localStorage.setItem(FORECAST_STORAGE_KEY, JSON.stringify({wwtp:FORECAST.wwtp.actual_monthly,wrtp:FORECAST.wrtp.actual_monthly}));
+    localStorage.setItem(FORECAST_DAILY_KEY, JSON.stringify(FORECAST_DAILY));
   }catch(err){}
 }
 
@@ -1700,11 +1722,15 @@ function monthSummaryHtml(site, f){
   for(var i=0;i<12;i++){
     var v=f.actual_monthly[i];
     var hasVal = (v!==null && v!==undefined && v!=='');
+    // Check if daily data exists for this month
+    var dailyKey=site+'_'+(2026)+'_'+(i+1);
+    var hasDailyData = FORECAST_DAILY[site] && FORECAST_DAILY[site][i+1] && Object.keys(FORECAST_DAILY[site][i+1]).length>0;
     var valTxt = hasVal ? Number(v).toLocaleString('th-TH') : '—';
     var valColor = hasVal ? 'var(--text)' : 'var(--text3)';
     var bg = hasVal ? 'var(--bg3)' : 'rgba(255,255,255,0.02)';
-    html+='<div style="background:'+bg+';border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 6px;text-align:center;">'+
-      '<div style="font-size:9px;color:var(--text3);margin-bottom:3px;">'+f.months[i]+'</div>'+
+    var border = hasDailyData ? 'var(--accent2)' : 'var(--border)';
+    html+='<div onclick="openDailyModal(this.dataset.s,this.dataset.m)" data-s="'+site+'" data-m="'+i+'" style="background:'+bg+';border:1px solid '+border+';border-radius:var(--r-sm);padding:7px 6px;text-align:center;cursor:pointer;transition:border-color .15s;" title="คลิกเพื่อกรอกข้อมูลรายวัน">'+
+      '<div style="font-size:9px;color:var(--text3);margin-bottom:3px;">'+f.months[i]+(hasDailyData?'<span style=\"color:var(--accent2);margin-left:2px;\">•</span>':'')+'</div>'+
       '<div style="font-size:12px;font-weight:700;color:'+valColor+';">'+valTxt+'</div>'+
       '</div>';
   }
@@ -1727,6 +1753,7 @@ function renderForecastWwtp(el){
   h+='<div id="fc-wwtp-progmark" style="position:absolute;left:0;top:-3px;width:2px;height:16px;background:var(--yellow);"></div>';
   h+='</div><div style="font-size:10px;color:var(--text3);margin-top:4px;">เส้นเหลือง = เป้าตามแผน ณ จำนวนวันที่ผ่านไปจริง</div>';
   h+='</div>';
+  h+='<div id="wwtp-daily-kpi" style="margin-bottom:12px;"></div>';
   h+='<div class="card" style="margin-bottom:12px;"><div class="sec-title"><span class="sec-dot" style="background:var(--cyan)"></span>S-Curve: เป้าหมาย vs ผลสะสม (m³)</div><div class="chart-wrap" style="height:180px;"><canvas id="fc_w_scurve"></canvas></div></div>';
   h+='<div class="card" style="margin-bottom:12px;"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>รายเดือน: Budget vs Actual และสรุปรายปี (m³)</div><div class="chart-wrap" style="height:260px;"><canvas id="fc_w_monthly"></canvas></div></div>';
   h+='<div class="card" style="margin-bottom:12px;">';
@@ -1789,6 +1816,11 @@ function closeForecastModal(){
   document.getElementById('forecastModalOverlay').classList.remove('open');
   fcModalSite=null;
 }
+function fcOpenDaily(monthIdx){
+  // Open daily modal for the current fcModalSite without closing forecast modal
+  if(!fcModalSite) return;
+  openDailyModal(fcModalSite, monthIdx);
+}
 function submitForecastEdit(){
   var pass=document.getElementById('fcModalPasscode').value;
   if(pass!==STATUS_PASSCODE){
@@ -1807,6 +1839,115 @@ function submitForecastEdit(){
   document.getElementById('fc-'+site+'-summary').innerHTML = monthSummaryHtml(site, f);
   updateForecast(site);
   closeForecastModal();
+}
+
+// ── Daily Input Modal (2-step) ──
+var dailyModalSite=null, dailyModalMonth=0, dayInputDay=0;
+var TH_MONTHS_FULL=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var DAYS_IN_MONTH=[31,28,31,30,31,30,31,31,30,31,30,31];
+var TH_DAYS=['อา','จ','อ','พ','พฤ','ศ','ส'];
+
+// Step 1: show monthly day grid
+function openDailyModal(site, monthIdx){ monthIdx=parseInt(monthIdx);
+  dailyModalSite=site; dailyModalMonth=monthIdx;
+  var f = site==='wwtp' ? FORECAST.wwtp : FORECAST.wrtp;
+  var mo=monthIdx+1;
+  document.getElementById('dailyModalTitle').textContent=TH_MONTHS_FULL[monthIdx]+' 2569';
+  document.getElementById('dailyModalSub').textContent=f.title+' — คลิกวันที่เพื่อกรอกข้อมูล';
+  if(!FORECAST_DAILY[site]) FORECAST_DAILY[site]={};
+  if(!FORECAST_DAILY[site][mo]) FORECAST_DAILY[site][mo]={};
+  renderDailyMonthGrid();
+  document.getElementById('dailyModalOverlay').classList.add('open');
+}
+
+function renderDailyMonthGrid(){
+  var site=dailyModalSite, mo=dailyModalMonth+1;
+  var daysInMo=DAYS_IN_MONTH[dailyModalMonth];
+  var dayData=FORECAST_DAILY[site][mo]||{};
+  // Calc first day of month (Sun=0)
+  var firstDay=new Date(2026, mo-1, 1).getDay();
+  var h='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px;">';
+  TH_DAYS.forEach(function(d){ h+='<div style="text-align:center;font-size:9px;color:var(--text3);padding:3px 0;">'+d+'</div>'; });
+  h+='</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+  for(var i=0;i<firstDay;i++) h+='<div></div>';
+  for(var d=1;d<=daysInMo;d++){
+    var val=dayData[d];
+    var hasVal=(val!==undefined&&val!==null&&val!=='');
+    var bg=hasVal?'var(--accent)':'var(--bg3)';
+    var color=hasVal?'white':'var(--text2)';
+    var valStr=hasVal?Number(val).toLocaleString('th-TH'):'';
+    h+='<div onclick="openDayInput('+d+')" style="background:'+bg+';border:1px solid var(--border);border-radius:6px;padding:6px 2px;text-align:center;cursor:pointer;min-height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;">'+
+      '<div style="font-size:10px;font-weight:600;color:'+color+';">'+d+'</div>'+
+      (hasVal?'<div style="font-size:9px;color:rgba(255,255,255,0.85);margin-top:1px;">'+valStr+'</div>':'<div style="font-size:9px;color:var(--text3);">+</div>')+
+      '</div>';
+  }
+  h+='</div>';
+  document.getElementById('dailyMonthGrid').innerHTML=h;
+  // Update sum
+  var total=0, hasAny=false;
+  for(var dd=1;dd<=daysInMo;dd++){ if(dayData[dd]!==undefined&&dayData[dd]!==null&&dayData[dd]!==''){ total+=Number(dayData[dd]); hasAny=true; } }
+  document.getElementById('dailySumDisplay').textContent=hasAny?total.toLocaleString('th-TH')+' m³':'—';
+}
+
+function closeDailyModal(){
+  document.getElementById('dailyModalOverlay').classList.remove('open');
+  dailyModalSite=null;
+}
+
+// Step 2: input for a specific day
+function openDayInput(day){
+  dayInputDay=day;
+  var site=dailyModalSite, mo=dailyModalMonth+1;
+  var f = site==='wwtp' ? FORECAST.wwtp : FORECAST.wrtp;
+  var dayData=FORECAST_DAILY[site][mo]||{};
+  var existVal=dayData[day];
+  document.getElementById('dayInputTitle').textContent='วันที่ '+day+' '+TH_MONTHS_FULL[dailyModalMonth]+' 2569';
+  document.getElementById('dayInputValue').value=(existVal!==undefined&&existVal!==null&&existVal!=='')?existVal:'';
+  document.getElementById('dayInputPasscode').value='';
+  document.getElementById('dayInputError').classList.remove('show');
+  document.getElementById('dayInputOverlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('dayInputValue').focus(); },50);
+}
+function closeDayInput(){
+  document.getElementById('dayInputOverlay').classList.remove('open');
+}
+function submitDayInput(){
+  var pass=document.getElementById('dayInputPasscode').value;
+  if(pass!==STATUS_PASSCODE){
+    document.getElementById('dayInputError').classList.add('show');
+    document.getElementById('dayInputPasscode').value='';
+    document.getElementById('dayInputPasscode').focus();
+    return;
+  }
+  var site=dailyModalSite, mo=dailyModalMonth, moNum=mo+1;
+  var f = site==='wwtp' ? FORECAST.wwtp : FORECAST.wrtp;
+  var raw=document.getElementById('dayInputValue').value;
+  if(!FORECAST_DAILY[site]) FORECAST_DAILY[site]={};
+  if(!FORECAST_DAILY[site][moNum]) FORECAST_DAILY[site][moNum]={};
+  if(raw==='') { delete FORECAST_DAILY[site][moNum][dayInputDay]; }
+  else { FORECAST_DAILY[site][moNum][dayInputDay]=Number(raw); }
+  // Recalculate monthly total from all daily entries
+  var total=0, hasAny=false;
+  var daysInMo=DAYS_IN_MONTH[mo];
+  for(var d=1;d<=daysInMo;d++){
+    var v=FORECAST_DAILY[site][moNum][d];
+    if(v!==undefined&&v!==null&&v!==''){total+=Number(v);hasAny=true;}
+  }
+  if(hasAny) f.actual_monthly[mo]=total;
+  else f.actual_monthly[mo]=null;
+  saveForecastOverrides();
+  // Refresh month grid and sum
+  renderDailyMonthGrid();
+  // Refresh forecast modal input if open
+  var fcInp=document.getElementById('fcModalInput'+mo);
+  if(fcInp && f.actual_monthly[mo]!==null) fcInp.value=f.actual_monthly[mo];
+  // Refresh summary card
+  var summaryId='fc-'+(site==='wwtp'?'wwtp':'wrtp')+'-summary';
+  var el=document.getElementById(summaryId);
+  if(el) el.innerHTML=monthSummaryHtml(site,f);
+  updateForecast(site);
+  closeDayInput();
 }
 
 function niceMax(v){
