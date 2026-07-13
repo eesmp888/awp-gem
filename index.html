@@ -19,6 +19,7 @@
   --purple:#8b5cf6;--accent:#6366f1;--accent2:#818cf8;
   --r:10px;--r-sm:6px;
   --sidebar:240px;
+  --topbar-h:56px;--datebar-h:46px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
@@ -60,7 +61,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;background:var(-
 /* ── MAIN ── */
 .main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
 .topbar{
-  padding:11px 22px;border-bottom:1px solid var(--border);
+  height:var(--topbar-h);padding:0 22px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
   background:var(--bg2);position:sticky;top:0;z-index:50;
 }
@@ -807,8 +808,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
 <!-- ══ PAGE: WATER ══ -->
 <div id="page-water" class="page">
 
-  <!-- Date bar -->
-  <div class="date-bar" style="margin:-20px -22px 0;padding:9px 22px;">
+  <!-- Date bar (sticky) -->
+  <div class="date-bar" style="margin:-20px -22px 0;padding:9px 22px;position:sticky;top:var(--topbar-h);z-index:40;box-shadow:0 2px 8px rgba(0,0,0,.3);">
     <span class="date-label">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="color:var(--accent2)"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.11-.89-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
       เลือกวันที่:
@@ -827,8 +828,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:11px 0;}
     <span class="date-info" id="dateInfo"></span>
   </div>
 
-  <!-- Water: 2 tabs side by side, show one at a time -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0 -22px;border-bottom:1px solid var(--border);">
+  <!-- Water: 2 tabs side by side, show one at a time (sticky) -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0 -22px;border-bottom:1px solid var(--border);position:sticky;top:calc(var(--topbar-h) + var(--datebar-h));z-index:39;background:var(--bg2);">
     <div style="border-right:1px solid var(--border);">
       <button class="split-tab-btn active" id="stab-wwtp" onclick="switchSplitTab('wwtp',this)">
         <span>💧</span> รายงานผลการเดินระบบบำบัดน้ำเสีย (WWTP-4 ACC1)
