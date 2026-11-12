@@ -2194,11 +2194,11 @@ function renderOverview(){
 // FORECAST 2026 (S-CURVE)
 var forecastBuilt=false;
 var DAYS_2026=[31,28,31,30,31,30,31,31,30,31,30,31];
-var FORECAST_STORAGE_KEY='awp_forecast_actual_v1';
+var FORECAST_STORAGE_KEY='awp_forecast_actual_v2';
 var fcModalSite=null;
 
 var FORECAST_DAILY={wwtp:{},wrtp:{}};
-var FORECAST_DAILY_KEY='awp_forecast_daily_v1';
+var FORECAST_DAILY_KEY='awp_forecast_daily_v2';
 
 function loadForecastOverrides(){
   try{
@@ -2269,8 +2269,8 @@ function renderForecastWwtp(el){
   h+='<div id="fc-wwtp-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;"></div>';
   h+='<div id="wwtp-daily-kpi" style="margin-bottom:12px;"></div>';
   h+='<div style="display:none;"><span id="fc-wwtp-proglbl"></span><span id="fc-wwtp-progfill"></span><span id="fc-wwtp-progmark"></span></div>';
-  h+='<div class="card" style="margin-bottom:12px;"><div class="sec-title"><span class="sec-dot" style="background:var(--cyan)"></span>S-Curve: เป้าหมาย vs ผลสะสม (m³)</div><div class="chart-wrap" style="height:180px;"><canvas id="fc_w_scurve"></canvas></div></div>';
-  h+='<div class="card" style="margin-bottom:12px;"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>รายเดือน: Budget vs Actual และสรุปรายปี (m³)</div><div class="chart-wrap" style="height:260px;"><canvas id="fc_w_monthly"></canvas></div></div>';
+  h+='<div style="background:#fff;border-radius:10px;padding:6px;margin-bottom:12px;"><div style="position:relative;height:clamp(400px,50vw,540px);"><canvas id="fc_w_monthly"></canvas></div></div>';
+  h+='<div style="background:#fff;border-radius:10px;padding:6px;margin-bottom:12px;"><div style="position:relative;height:clamp(400px,50vw,540px);"><canvas id="fc_w_scurve"></canvas></div></div>';
   h+='<div class="card" style="margin-bottom:12px;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">';
   h+='<div class="sec-title" style="margin-bottom:0"><span class="sec-dot" style="background:var(--green)"></span>น้ำเสียเข้าระบบฯ จริง (Actual 2026) — m³/เดือน</div>';
@@ -2290,8 +2290,8 @@ function renderForecastWrtp(el){
   h+='<div style="font-size:11px;color:var(--text3);margin-bottom:12px;padding:8px 12px;background:var(--bg3);border-radius:var(--r-sm);">🎯 เป้าหมายปี 2569 — กดปุ่ม "แก้ไขข้อมูล" เพื่ออัปเดตผลจริง (ต้องใส่รหัสยืนยัน)</div>';
   h+='<div id="fc-wrtp-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;"></div>';
   h+='<div style="display:none;"><span id="fc-wrtp-proglbl"></span><span id="fc-wrtp-progfill"></span><span id="fc-wrtp-progmark"></span></div>';
-  h+='<div class="card" style="margin-bottom:12px;"><div class="sec-title"><span class="sec-dot" style="background:var(--accent2)"></span>S-Curve: เป้าหมาย vs ผลสะสม (m³)</div><div class="chart-wrap" style="height:180px;"><canvas id="fc_r_scurve"></canvas></div></div>';
-  h+='<div class="card" style="margin-bottom:12px;"><div class="sec-title"><span class="sec-dot" style="background:var(--green)"></span>รายเดือน: Budget vs Actual และสรุปรายปี (m³)</div><div class="chart-wrap" style="height:260px;"><canvas id="fc_r_monthly"></canvas></div></div>';
+  h+='<div style="background:#fff;border-radius:10px;padding:6px;margin-bottom:12px;"><div style="position:relative;height:clamp(400px,50vw,540px);"><canvas id="fc_r_monthly"></canvas></div></div>';
+  h+='<div style="background:#fff;border-radius:10px;padding:6px;margin-bottom:12px;"><div style="position:relative;height:clamp(400px,50vw,540px);"><canvas id="fc_r_scurve"></canvas></div></div>';
   h+='<div class="card" style="margin-bottom:12px;">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">';
   h+='<div class="sec-title" style="margin-bottom:0"><span class="sec-dot" style="background:var(--green)"></span>น้ำจ่ายรีเคลมจริง (Actual 2026) — m³/เดือน</div>';
@@ -2507,13 +2507,118 @@ function comboLabelPlugin(pctText){
   };
 }
 
+
+// ══ Excel-style charts (สรุปปริมาณ 2026) ══
+var FC_FONT='Tahoma,"Segoe UI",sans-serif', FC_DIM=[31,28,31,30,31,30,31,31,30,31,30,31];
+var FC_ASOF={label:'11 พ.ย. 69',d:17};
+FORECAST.wwtp.actual_monthly=[176138,224129,197883,197993,259877,238474,231480,203559,221545,204222,129381,null];
+FORECAST.wrtp.actual_monthly=[26769,37583,35043,32249,39471,29393,20186,44435,55221,43068,33488,null];
+function fcNum(v){return Math.round(v).toLocaleString('en-US');}
+function fcState(site){
+  var f=FORECAST[site],a=f.actual_monthly,cm=0,i;
+  for(i=0;i<12;i++){if(a[i]!==null&&a[i]!==undefined&&a[i]!=='')cm=i;}
+  var d=FC_ASOF.d,dd=FORECAST_DAILY[site]&&FORECAST_DAILY[site][cm+1];
+  if(dd){var ks=Object.keys(dd).map(Number);if(ks.length)d=Math.max.apply(null,ks);}
+  var cum=0,el=d,rem=FC_DIM[cm]-d,mrem=rem;
+  for(i=0;i<12;i++){if(i<=cm&&a[i])cum+=+a[i];if(i<cm)el+=FC_DIM[i];if(i>cm)rem+=FC_DIM[i];}
+  var T=f.annual_target,left=T-cum;
+  return {f:f,cm:cm,d:d,cum:cum,el:el,rem:rem,mrem:mrem,T:T,left:left,perDay:rem>0?left/rem:0,avgDone:cum/el,bg:T/365,pct:Math.round(cum/T*1000)/10};
+}
+function fcCalc(site){var s=fcState(site);return {actual_to_date:s.cum,pct_done:s.pct,pct_expected:Math.round(s.el/365*1000)/10,remaining:s.left,days_remaining:s.rem,remaining_per_day:s.perDay,months_done:s.cm+1,days_elapsed:s.el};}
+function fcRich(ctx,p,x,y,sz,al,dry){
+  ctx.font='bold '+sz+'px '+FC_FONT;var w=0,i;
+  for(i=0;i<p.length;i++)w+=ctx.measureText(p[i][0]).width;
+  if(dry)return w;
+  var sx=al==='right'?x-w:al==='center'?x-w/2:x;ctx.textAlign='left';
+  for(i=0;i<p.length;i++){ctx.fillStyle=p[i][1];ctx.fillText(p[i][0],sx,y);sx+=ctx.measureText(p[i][0]).width;}
+  return w;
+}
+function drawAwpCharts(site){
+  var s=fcState(site),f=s.f,isW=site==='wwtp',pre=isW?'fc_w_':'fc_r_';
+  var st1=isW?50000:10000,stR=isW?250000:100000,stS=isW?500000:100000;
+  var nm=isW?'น้ำเสียเข้าระบบฯ':'น้ำจ่ายรีเคลม',cumNm=isW?'น้ำเสียสะสม 2026':'น้ำจ่ายสะสม 2026',un=isW?'ปริมาณน้ำเสีย':'ปริมาณน้ำจ่าย';
+  var base=isW?'AWP ปริมาณน้ำเสียเข้าระบบฯ (AW1 + AW2)':'AWP ปริมาณน้ำจ่ายรีเคลม (AW3)';
+  var a=f.actual_monthly,b=f.budget_monthly,act=[],diff=[],nul=[],peak=0,i,RED='#FF0000',BLUE='#0070C0';
+  for(i=0;i<12;i++){var v=(a[i]===null||a[i]===undefined||a[i]==='')?null:+a[i];act.push(v);diff.push(v===null?b[i]:Math.max(b[i]-v,0));nul.push(null);peak=Math.max(peak,v||0,b[i]);}
+  var yMax=Math.ceil(peak*1.1/st1)*st1,rMax=Math.round(s.T*1.12/stR)*stR;
+  function tk(sz){return {color:'#333',font:{size:sz},callback:function(x){return fcNum(x);}};}
+  function ttl(t){return {display:true,text:t,color:'#111',font:{size:12,weight:'bold'}};}
+  var tf=function(W){return Math.max(11,Math.min(16,W/70));};
+  var plM={id:'fcM',
+    beforeLayout:function(ch){var t=tf(ch.width);ch.options.layout.padding={top:ch.width<820?Math.round(10+t*2.3+t+8+t*1.5+t*1.6+t*1.4+14):88,right:6,left:4,bottom:4};},
+    beforeDraw:function(ch){
+      var ctx=ch.ctx,W=ch.width,t=tf(W),nar=W<820;ctx.save();ctx.fillStyle='#fff';ctx.fillRect(0,0,W,ch.height);
+      var bw=fcRich(ctx,[['ข้อมูล ณ วันที่ '+FC_ASOF.label,RED]],0,0,t,'left',1)+16,bh=t*2.3;
+      ctx.setLineDash([2,2]);ctx.strokeStyle='#888';ctx.lineWidth=1;ctx.strokeRect(8,10,bw,bh);ctx.setLineDash([]);
+      var tw=fcRich(ctx,[['ข้อมูล ณ วันที่ '+FC_ASOF.label,RED]],16,10+bh*0.68,t,'left');ctx.fillStyle=RED;ctx.fillRect(16,10+bh*0.68+3,tw,1.5);
+      var cx=nar?W/2:W*0.5,y1=nar?10+bh+t+8:t+10,y2=y1+t*1.5;
+      fcRich(ctx,[[base+' ','#111'],['2026',RED]],cx,y1,t,'center');fcRich(ctx,[['งบประมาณ เทียบกับ ปัจจุบัน','#111']],cx,y2,t,'center');
+      var r1=[['คงเหลือ ','#1F3FBF'],[String(s.rem),RED],[' วัน '+un+' (เฉลี่ย)','#1F3FBF']],r2=[['ให้ได้ตามกำหนด ','#1F3FBF'],[fcNum(s.perDay),RED],[' ลบ.ม./วัน','#1F3FBF']];
+      if(nar){var q=y2+t*1.6;fcRich(ctx,r1,W/2,q,t,'center');fcRich(ctx,r2,W/2,q+t*1.4,t,'center');}
+      else{fcRich(ctx,r1,W-10,t+10,t,'right');fcRich(ctx,r2,W-10,y2,t,'right');}
+      ctx.restore();},
+    afterDatasetsDraw:function(ch){
+      var ctx=ch.ctx,ca=ch.chartArea,sx=ch.scales.x,sy=ch.scales.y,sy1=ch.scales.y1,fs=Math.max(9,Math.min(13,ch.width/80)),i;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold '+fs+'px '+FC_FONT;
+      for(i=0;i<12;i++){var x=sx.getPixelForValue(i);ctx.fillStyle=RED;ctx.fillText(fcNum(b[i]),x,sy.getPixelForValue(b[i])-fs*1.2);
+        if(act[i]!==null){var yt=sy.getPixelForValue(act[i]),yb=sy.getPixelForValue(0);if(yb-yt>fs*6){ctx.save();ctx.translate(x,(yt+yb)/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='#111';ctx.font=(fs-1)+'px '+FC_FONT;ctx.fillText(fcNum(act[i]),0,0);ctx.restore();}}}
+      var x13=sx.getPixelForValue(12),y0=sy1.getPixelForValue(0),yc=sy1.getPixelForValue(s.cum),yT=sy1.getPixelForValue(Math.max(s.cum+s.left,s.cum));
+      ctx.save();ctx.translate(x13,(y0+yc)/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='#fff';ctx.font='bold '+fs+'px '+FC_FONT;ctx.fillText(fcNum(s.cum),0,0);ctx.restore();
+      if(yc-yT>fs*5){ctx.save();ctx.translate(x13,(yc+yT)/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='#111';ctx.font='bold '+fs+'px '+FC_FONT;ctx.fillText(fcNum(s.left),0,0);ctx.restore();}
+      ctx.fillStyle=RED;ctx.font='bold '+fs+'px '+FC_FONT;ctx.fillText(fcNum(s.T),x13,sy1.getPixelForValue(s.T)-fs*1.2);
+      ctx.save();ctx.translate(x13-(sx.getPixelForValue(1)-sx.getPixelForValue(0))*0.42,(y0+yc)/2);ctx.rotate(-Math.PI/2);ctx.fillText(Math.round(s.pct)+' %',0,0);ctx.restore();
+      var xm=sx.getPixelForValue(s.cm),hw=(sx.getPixelForValue(1)-sx.getPixelForValue(0))*0.46,top=ca.top+fs*2.6;
+      ctx.setLineDash([7,5]);ctx.lineWidth=2.5;ctx.strokeStyle='#00B050';ctx.strokeRect(xm-hw,top,hw*2,ca.bottom-top);ctx.setLineDash([]);
+      ctx.fillStyle=RED;ctx.fillText('คงเหลือ '+s.mrem+' วัน',xm,ca.top+fs*1.2);ctx.restore();}};
+  var bar=function(l,d,c,ax){return {type:'bar',label:l,data:d,backgroundColor:c,stack:'s',yAxisID:ax,barPercentage:0.42,categoryPercentage:1,order:2};};
+  mkChart(pre+'monthly',{type:'bar',data:{labels:f.months.concat(['รวม']),datasets:[
+    bar(nm,act.concat([null]),'#00B0F0','y'),bar('ส่วนต่าง',diff.concat([null]),'#FFF200','y'),
+    bar(cumNm,nul.concat([s.cum]),BLUE,'y1'),bar('คงเหลือ',nul.concat([Math.max(s.left,0)]),'#66EE33','y1'),
+    {type:'line',label:'Budget 2026',data:b.concat([null]),borderColor:RED,backgroundColor:RED,borderWidth:3,pointStyle:'rectRot',pointRadius:5,fill:false,yAxisID:'y',order:1}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:88}},
+      plugins:{legend:{position:'bottom',labels:{color:'#111',font:{size:12,weight:'bold'},usePointStyle:true,boxWidth:10}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#111',font:{size:12,weight:'bold'}}},
+        y:{stacked:true,min:0,max:yMax,ticks:Object.assign(tk(11),{stepSize:st1}),grid:{color:'#d9d9d9'},title:ttl('ลบ.ม./เดือน')},
+        y1:{stacked:true,position:'right',min:0,max:rMax,ticks:Object.assign(tk(11),{stepSize:stR}),grid:{display:false},title:ttl('ลบ.ม./ปี')}}},plugins:[plM]});
+  // S-Curve
+  var tc=f.target_cum.slice(),ac=[],run=0,yS=Math.ceil(s.T*1.1/stS)*stS,MO=['Jan-26','Feb-26','Mar-26','Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26'];
+  for(i=0;i<12;i++){if(i<=s.cm){run+=(act[i]||0);ac.push(run);}else ac.push(null);}
+  var plS={id:'fcS',
+    beforeLayout:function(ch){ch.options.layout.padding={top:ch.width<700?Math.round(56+5*(Math.max(9,Math.min(14,ch.width/70))+8)+18):52,right:12,left:4,bottom:4};},
+    beforeDraw:function(ch){var ctx=ch.ctx,W=ch.width;ctx.save();ctx.fillStyle='#fff';ctx.fillRect(0,0,W,ch.height);
+      fcRich(ctx,[[base.replace(' (AW1 + AW2)','').replace(' (AW3)','')+' '+(isW?'ปี2026':'2026'),'#111']],W/2,32,Math.max(14,Math.min(22,W/50)),'center');ctx.restore();},
+    afterDatasetsDraw:function(ch){
+      var ctx=ch.ctx,ca=ch.chartArea,sx=ch.scales.x,sy=ch.scales.y,W=ch.width,fs=Math.max(9,Math.min(14,W/70)),i;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold '+fs+'px '+FC_FONT;
+      for(i=0;i<12;i++){var x=sx.getPixelForValue(i),yt=sy.getPixelForValue(tc[i]),has=ac[i]!==null,ya=has?sy.getPixelForValue(ac[i]):0,up=has&&ac[i]>tc[i];
+        ctx.fillStyle='#E00000';ctx.fillText(fcNum(tc[i]),x+(i===11?-fs*2:fs*1.4),up?yt+fs*2:yt-fs*0.9);
+        if(has){ctx.fillStyle=BLUE;ctx.fillText(fcNum(ac[i]),x-fs*1.2,up?ya-fs*0.9:ya+fs*2);}}
+      var G='#00802b',L=[[['ข้อมูล ณ วันที่ '+FC_ASOF.label,RED]],
+        [['1. เป้าหมาย (BG) 2026 สะสมรวม '+fcNum(s.T)+' ลบ.ม. เฉลี่ย '+fcNum(s.bg)+' ลบ.ม./วัน',RED]],
+        [['2. ปัจจุบัน'+(isW?'น้ำเสียเข้าระบบฯ':'น้ำจ่ายฯ')+'สะสม '+fcNum(s.cum)+' ลบ.ม. เฉลี่ย '+fcNum(s.avgDone)+' ลบ.ม./วัน',BLUE]],
+        [['3. คงเหลือให้ได้ตามเป้าหมาย (BG) '+fcNum(s.left)+' ลบ.ม. ('+s.rem+' วัน)',G]],
+        [['    ปริมาณ'+(isW?'น้ำเสีย':'น้ำจ่าย')+'(เฉลี่ย) '+fcNum(s.perDay)+' ลบ.ม./วัน',G]]],bw=0,lh=fs+8;
+      for(i=0;i<L.length;i++)bw=Math.max(bw,fcRich(ctx,L[i],0,0,fs,'left',1));
+      bw+=22;var bx=W<700?8:ca.left+14,by=W<700?58:ca.top+8,bh=L.length*lh+10;
+      ctx.fillStyle='#fff';ctx.fillRect(bx,by,bw,bh);ctx.setLineDash([2,2]);ctx.strokeStyle='#888';ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);ctx.setLineDash([]);
+      for(i=0;i<L.length;i++){var w=fcRich(ctx,L[i],bx+10,by+lh*(i+0.8)+2,fs,'left');if(i===0){ctx.fillStyle=RED;ctx.fillRect(bx+10,by+lh*0.8+5,w,1.5);}}
+      var px=sx.getPixelForValue(s.cm),py=sy.getPixelForValue(ac[s.cm]);
+      if(W>=700){ctx.setLineDash([2,3]);ctx.strokeStyle='#777';ctx.beginPath();ctx.moveTo(bx+bw,by+bh);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);}
+      ctx.fillStyle=G;ctx.textAlign='center';ctx.fillText('คงเหลือ '+s.mrem+' วัน',Math.min(px+fs*4,ca.right-fs*4),py-fs*3);ctx.restore();}};
+  mkChart(pre+'scurve',{type:'line',data:{labels:MO,datasets:[
+    {label:'Target (Budget 2026)',data:tc,borderColor:RED,borderDash:[7,5],borderWidth:2.5,pointRadius:0,fill:false,tension:0},
+    {label:'Actual (Jan-Dec 2026)',data:ac,borderColor:'#4F81BD',borderWidth:3,pointStyle:'rect',pointRadius:4.5,pointBackgroundColor:'#1F77D0',pointBorderColor:'#1F77D0',fill:false,tension:0}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{top:52}},
+      plugins:{legend:{position:'bottom',labels:{color:'#111',font:{size:12,weight:'bold'},usePointStyle:true,boxWidth:30}}},
+      scales:{x:{grid:{color:'#eee'},ticks:{color:'#111',font:{size:11,weight:'bold'}}},y:{min:0,max:yS,ticks:Object.assign(tk(11),{stepSize:stS}),grid:{color:'#d9d9d9'},title:ttl('ลบ.ม./เดือน')}}},plugins:[plS]});
+}
 function updateForecast(site){
   var f = site==='wwtp' ? FORECAST.wwtp : FORECAST.wrtp;
   var color = site==='wwtp' ? '#06b6d4' : '#818cf8';
   var colorVar = site==='wwtp' ? 'var(--cyan)' : 'var(--accent2)';
   var actualBarColor = site==='wwtp' ? 'rgba(6,182,212,0.85)' : 'rgba(16,185,129,0.85)';
 
-  var c = computeForecast(f);
+  var c = fcCalc(site);
   var onTrack = c.pct_done >= c.pct_expected;
 
   // KPI cards
@@ -2536,69 +2641,7 @@ function updateForecast(site){
   document.getElementById('fc-'+site+'-progfill').style.width=Math.min(c.pct_done,100)+'%';
   document.getElementById('fc-'+site+'-progmark').style.left=Math.min(c.pct_expected,100)+'%';
 
-  // Charts
-  var sOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{color:TC,font:{size:10},boxWidth:10}}},scales:{x:{ticks:{color:TC,font:{size:9}},grid:{color:GC},border:{display:false}},y:{ticks:{color:TC,font:{size:9},callback:function(v){return (v/1000)+'k';}},grid:{color:GC},border:{display:false}}}};
-  var bOpts=JSON.parse(JSON.stringify(sOpts));
-  var areaFill = site==='wwtp' ? 'rgba(6,182,212,0.08)' : 'rgba(129,140,248,0.08)';
-
-  mkChart('fc_'+(site==='wwtp'?'w':'r')+'_scurve',{type:'line',data:{labels:f.months,datasets:[
-    {label:'เป้าหมาย (สะสม)',data:f.target_cum,borderColor:'#f59e0b',borderDash:[5,3],borderWidth:2,pointRadius:0,fill:false,tension:0},
-    {label:'ผลสะสมจริง',data:c.actual_cum,borderColor:color,backgroundColor:areaFill,borderWidth:2.5,pointRadius:3,fill:true,tension:0.2}
-  ]},options:sOpts});
-
-  // Combo chart: monthly Budget/Actual stack + annual summary bar
-  var actualArr=[], diffArr=[], budgetArr=[];
-  for(var mi=0;mi<12;mi++){
-    var b=f.budget_monthly[mi], a=f.actual_monthly[mi];
-    budgetArr.push(b);
-    if(a===null||a===undefined||a===''){
-      actualArr.push(null);
-      diffArr.push(b);
-    }else{
-      actualArr.push(Number(a));
-      diffArr.push(Math.max(b-Number(a),0));
-    }
-  }
-  actualArr.push(null); diffArr.push(null); budgetArr.push(null);
-  var doneArr=Array(12).fill(null).concat([c.actual_to_date]);
-  var remainArr=Array(12).fill(null).concat([Math.max(c.remaining,0)]);
-  var comboLabels=f.months.concat(['รวม']);
-
-  var maxBudget=Math.max.apply(null,f.budget_monthly);
-  var yMax=niceMax(maxBudget*1.3);
-  var y1Max=niceMax(f.annual_target*1.12);
-
-  var actualLabel = site==='wwtp' ? 'น้ำเสียเข้าระบบฯ' : 'น้ำจ่ายรีเคลม';
-  var doneLabel   = site==='wwtp' ? 'น้ำเสียสะสม 2026' : 'น้ำจ่ายสะสม 2026';
-  var actualColor = site==='wwtp' ? '#38bdf8' : '#34d399';
-
-  var numFmt=function(v){return Math.round(v).toLocaleString('th-TH');};
-
-  mkChart('fc_'+(site==='wwtp'?'w':'r')+'_monthly',{
-    type:'bar',
-    data:{labels:comboLabels,datasets:[
-      {type:'bar',label:actualLabel,data:actualArr,backgroundColor:actualColor,stack:'m',yAxisID:'y',
-        showLabels:true,labelColor:'#0f1117',labelFmt:numFmt},
-      {type:'bar',label:'ส่วนต่าง',data:diffArr,backgroundColor:'#fde047',stack:'m',yAxisID:'y'},
-      {type:'line',label:'Budget 2026',data:budgetArr,borderColor:'#ef4444',backgroundColor:'#ef4444',
-        borderWidth:2,pointRadius:3,pointBackgroundColor:'#ef4444',yAxisID:'y',tension:0,
-        showLabels:true,labelColor:'#ef4444',labelFont:'700 10px sans-serif',labelFmt:numFmt},
-      {type:'bar',label:doneLabel,data:doneArr,backgroundColor:'#3b82f6',stack:'a',yAxisID:'y1',
-        showLabels:true,labelColor:'#fff',labelFmt:numFmt,isDone:true},
-      {type:'bar',label:'คงเหลือ',data:remainArr,backgroundColor:'#22c55e',stack:'a',yAxisID:'y1',
-        showLabels:true,labelColor:'#0f1117',labelFmt:numFmt}
-    ]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:true,position:'bottom',labels:{color:TC,font:{size:9},boxWidth:10,padding:8}}},
-      scales:{
-        x:{ticks:{color:TC,font:{size:9}},grid:{display:false},border:{display:false}},
-        y:{position:'left',min:0,max:yMax,ticks:{color:TC,font:{size:9},callback:numFmt},grid:{color:GC},border:{display:false}},
-        y1:{position:'right',min:0,max:y1Max,ticks:{color:TC,font:{size:9},callback:numFmt},grid:{display:false},border:{display:false}}
-      }
-    },
-    plugins:[comboLabelPlugin(c.pct_done+'%')]
-  });
+  drawAwpCharts(site);
 }
 // HISTORY
 var histData=[
